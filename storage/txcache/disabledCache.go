@@ -35,6 +35,11 @@ func (cache *DisabledCache) RemoveTxByHash(_ []byte) bool {
 	return false
 }
 
+// RemoveTxBulk does nothing
+func (cache *DisabledCache) RemoveTxBulk(_ [][]byte) int {
+	return 0
+}
+
 // Len returns zero
 func (cache *DisabledCache) Len() int {
 	return 0

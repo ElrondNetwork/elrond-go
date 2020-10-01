@@ -2,6 +2,8 @@ package txcache
 
 import (
 	"bytes"
+	"fmt"
+	"sort"
 
 	"github.com/ElrondNetwork/elrond-go/data"
 )
@@ -13,6 +15,10 @@ type WrappedTransaction struct {
 	SenderShardID   uint32
 	ReceiverShardID uint32
 	Size            int64
+}
+
+func (wrappedTx *WrappedTransaction) String() string {
+	return fmt.Sprintf("%s %d", string(wrappedTx.TxHash), wrappedTx.Tx.GetNonce())
 }
 
 func (wrappedTx *WrappedTransaction) sameAs(another *WrappedTransaction) bool {
@@ -35,4 +41,57 @@ func estimateTxFee(tx *WrappedTransaction) uint64 {
 	gasPrice := float32(tx.Tx.GetGasPrice()) / 1000
 	feeInNanoERD := gasLimit * gasPrice
 	return uint64(feeInNanoERD)
+}
+
+// SortTransactionsBySenderAndNonce sorts the provided transactions and hashes simultaneously
+func SortTransactionsBySenderAndNonce(transactions []*WrappedTransaction) {
+	sorter := func(i, j int) bool {
+		txI := transactions[i].Tx
+		txJ := transactions[j].Tx
+
+		delta := bytes.Compare(txI.GetSndAddr(), txJ.GetSndAddr())
+		if delta == 0 {
+			delta = int(txI.GetNonce()) - int(txJ.GetNonce())
+		}
+
+		return delta < 0
+	}
+
+	sort.Slice(transactions, sorter)
+}
+
+// GroupSortedTransactionsBySender sorts in-line by sender, then by nonce, then splits the slice into groups (one group per sender)
+func GroupSortedTransactionsBySender(transactions []*WrappedTransaction) []groupOfTxs {
+	groups := make([]groupOfTxs, 0)
+
+	if len(transactions) == 0 {
+		return groups
+	}
+
+	// First, obtain a sorted slice, then split into groups
+	SortTransactionsBySenderAndNonce(transactions)
+
+	firstTx := transactions[0]
+	groupSender := firstTx.Tx.GetSndAddr()
+	groupStart := 0
+
+	for index, tx := range transactions {
+		txSender := tx.Tx.GetSndAddr()
+		if bytes.Equal(groupSender, txSender) {
+			continue
+		}
+
+		groups = append(groups, groupOfTxs{groupSender, transactions[groupStart:index]})
+		groupSender = txSender
+		groupStart = index
+	}
+
+	// Handle last group
+	groups = append(groups, groupOfTxs{groupSender, transactions[groupStart:]})
+	return groups
+}
+
+type groupOfTxs struct {
+	sender       []byte
+	transactions []*WrappedTransaction
 }

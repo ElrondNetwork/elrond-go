@@ -160,6 +160,94 @@ func TestListForSender_RemoveTransaction_NoPanicWhenTxMissing(t *testing.T) {
 	require.Equal(t, 0, list.items.Len())
 }
 
+func TestListForSender_RemoveSortedTransactions(t *testing.T) {
+	list := newUnconstrainedListToTest()
+
+	// Scenario: add then remove all at once
+	txs := []*WrappedTransaction{
+		createTx([]byte(".1"), ".", 1),
+		createTx([]byte(".7"), ".", 7),
+		createTx([]byte(".8"), ".", 8),
+		createTx([]byte(".9"), ".", 9),
+	}
+	for _, tx := range txs {
+		list.AddTx(tx)
+	}
+
+	require.Equal(t, 4, list.items.Len())
+
+	numRemoved := list.RemoveSortedTransactions(txs)
+	require.Equal(t, 4, numRemoved)
+	require.Equal(t, 0, list.items.Len())
+
+	// Scenario: add then remove one by one
+	txs = []*WrappedTransaction{
+		createTx([]byte(".1"), ".", 1),
+		createTx([]byte(".7"), ".", 7),
+		createTx([]byte(".8"), ".", 8),
+		createTx([]byte(".9"), ".", 9),
+	}
+	for _, tx := range txs {
+		list.AddTx(tx)
+	}
+
+	require.Equal(t, 4, list.items.Len())
+
+	numRemoved = list.RemoveSortedTransactions([]*WrappedTransaction{txs[2]})
+	require.Equal(t, 1, numRemoved)
+	require.Equal(t, 3, list.items.Len())
+
+	numRemoved = list.RemoveSortedTransactions([]*WrappedTransaction{txs[3]})
+	require.Equal(t, 1, numRemoved)
+	require.Equal(t, 2, list.items.Len())
+
+	numRemoved = list.RemoveSortedTransactions([]*WrappedTransaction{txs[1]})
+	require.Equal(t, 1, numRemoved)
+	require.Equal(t, 1, list.items.Len())
+
+	numRemoved = list.RemoveSortedTransactions([]*WrappedTransaction{txs[0]})
+	require.Equal(t, 1, numRemoved)
+	require.Equal(t, 0, list.items.Len())
+
+	// Scenario: try to remove non-existing
+	txs = []*WrappedTransaction{
+		createTx([]byte(".1"), ".", 1),
+		createTx([]byte(".7"), ".", 7),
+		createTx([]byte(".8"), ".", 8),
+		createTx([]byte(".9"), ".", 9),
+	}
+	for _, tx := range txs {
+		list.AddTx(tx)
+	}
+
+	require.Equal(t, 4, list.items.Len())
+
+	foo := createTx([]byte(".5"), ".", 5)
+	bar := createTx([]byte(".6"), ".", 6)
+	numRemoved = list.RemoveSortedTransactions([]*WrappedTransaction{foo, bar})
+	require.Equal(t, 0, numRemoved)
+	require.Equal(t, 4, list.items.Len())
+
+	// Scenario: some removed, some missing
+	txs = []*WrappedTransaction{
+		createTx([]byte(".1"), ".", 1),
+		createTx([]byte(".7"), ".", 7),
+		createTx([]byte(".8"), ".", 8),
+		createTx([]byte(".9"), ".", 9),
+	}
+	for _, tx := range txs {
+		list.AddTx(tx)
+	}
+
+	require.Equal(t, 4, list.items.Len())
+
+	foo = createTx([]byte(".5"), ".", 5)
+	bar = createTx([]byte(".6"), ".", 6)
+	numRemoved = list.RemoveSortedTransactions([]*WrappedTransaction{txs[0], foo, bar, txs[2]})
+	require.Equal(t, 2, numRemoved)
+	require.Equal(t, 2, list.items.Len())
+}
+
 func TestListForSender_SelectBatchTo(t *testing.T) {
 	list := newUnconstrainedListToTest()
 

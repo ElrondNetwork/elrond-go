@@ -547,7 +547,7 @@
     MaxSizeInBytes = 943718 # 943718 is 90% from 1MB
 
 [VirtualMachineConfig]
-    OutOfProcessEnabled = true
+    OutOfProcessEnabled = false
     [VirtualMachineConfig.OutOfProcessConfig]
         LogsMarshalizer = "json"
         MessagesMarshalizer = "json"

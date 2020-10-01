@@ -3,7 +3,6 @@ package preprocess
 import (
 	"bytes"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"reflect"
 	"testing"
@@ -1001,54 +1000,6 @@ func TestTransactions_IsDataPrepared_NumMissingTxsGreaterThanZeroShouldWork(t *t
 
 	err := txs.IsDataPrepared(2, haveTime)
 	assert.Nil(t, err)
-}
-
-func ExampleSortTransactionsBySenderAndNonce() {
-	txs := []*txcache.WrappedTransaction{
-		{Tx: &transaction.Transaction{Nonce: 3, SndAddr: []byte("bbbb")}, TxHash: []byte("w")},
-		{Tx: &transaction.Transaction{Nonce: 1, SndAddr: []byte("aaaa")}, TxHash: []byte("x")},
-		{Tx: &transaction.Transaction{Nonce: 5, SndAddr: []byte("bbbb")}, TxHash: []byte("y")},
-		{Tx: &transaction.Transaction{Nonce: 2, SndAddr: []byte("aaaa")}, TxHash: []byte("z")},
-		{Tx: &transaction.Transaction{Nonce: 7, SndAddr: []byte("aabb")}, TxHash: []byte("t")},
-		{Tx: &transaction.Transaction{Nonce: 6, SndAddr: []byte("aabb")}, TxHash: []byte("a")},
-		{Tx: &transaction.Transaction{Nonce: 3, SndAddr: []byte("ffff")}, TxHash: []byte("b")},
-		{Tx: &transaction.Transaction{Nonce: 3, SndAddr: []byte("eeee")}, TxHash: []byte("c")},
-	}
-
-	SortTransactionsBySenderAndNonce(txs)
-
-	for _, item := range txs {
-		fmt.Println(item.Tx.GetNonce(), string(item.Tx.GetSndAddr()), string(item.TxHash))
-	}
-
-	// Output:
-	// 1 aaaa x
-	// 2 aaaa z
-	// 6 aabb a
-	// 7 aabb t
-	// 3 bbbb w
-	// 5 bbbb y
-	// 3 eeee c
-	// 3 ffff b
-}
-
-func BenchmarkSortTransactionsByNonceAndSender_WhenReversedNonces(b *testing.B) {
-	numTx := 100000
-	txs := make([]*txcache.WrappedTransaction, numTx)
-	for i := 0; i < numTx; i++ {
-		txs[i] = &txcache.WrappedTransaction{
-			Tx: &transaction.Transaction{
-				Nonce:   uint64(numTx - i),
-				SndAddr: []byte(fmt.Sprintf("sender-%d", i)),
-			},
-		}
-	}
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		SortTransactionsBySenderAndNonce(txs)
-	}
 }
 
 func createGoodPreprocessor(dataPool dataRetriever.PoolsHolder) *transactions {

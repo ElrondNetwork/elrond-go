@@ -63,6 +63,21 @@ func (txMap *txByHashMap) getTx(txHash string) (*WrappedTransaction, bool) {
 	return tx, true
 }
 
+func (txMap *txByHashMap) getTxs(keys [][]byte) []*WrappedTransaction {
+	result := make([]*WrappedTransaction, 0, len(keys))
+
+	for _, key := range keys {
+		txUntyped, ok := txMap.backingMap.Get(string(key))
+		if !ok {
+			continue
+		}
+
+		result = append(result, txUntyped.(*WrappedTransaction))
+	}
+
+	return result
+}
+
 // RemoveTxsBulk removes transactions, in bulk
 func (txMap *txByHashMap) RemoveTxsBulk(txHashes [][]byte) uint32 {
 	numRemoved := uint32(0)

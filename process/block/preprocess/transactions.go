@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-	"sort"
 	"sync"
 	"time"
 
@@ -433,7 +432,7 @@ func (txs *transactions) processTxsFromMe(
 		return err
 	}
 
-	SortTransactionsBySenderAndNonce(txsFromMe)
+	txcache.SortTransactionsBySenderAndNonce(txsFromMe)
 
 	isShardStuckFalse := func(uint32) bool {
 		return false
@@ -1067,7 +1066,7 @@ func (txs *transactions) computeSortedTxs(
 	log.Debug("computeSortedTxs.GetSortedTransactions")
 	sortedTxs := sortedTransactionsProvider.GetSortedTransactions()
 
-	SortTransactionsBySenderAndNonce(sortedTxs)
+	txcache.SortTransactionsBySenderAndNonce(sortedTxs)
 	return sortedTxs, nil
 }
 
@@ -1199,23 +1198,6 @@ func (txs *transactions) GetAllCurrentUsedTxs() map[string]data.TransactionHandl
 // IsInterfaceNil returns true if there is no value under the interface
 func (txs *transactions) IsInterfaceNil() bool {
 	return txs == nil
-}
-
-// SortTransactionsBySenderAndNonce sorts the provided transactions and hashes simultaneously
-func SortTransactionsBySenderAndNonce(transactions []*txcache.WrappedTransaction) {
-	sorter := func(i, j int) bool {
-		txI := transactions[i].Tx
-		txJ := transactions[j].Tx
-
-		delta := bytes.Compare(txI.GetSndAddr(), txJ.GetSndAddr())
-		if delta == 0 {
-			delta = int(txI.GetNonce()) - int(txJ.GetNonce())
-		}
-
-		return delta < 0
-	}
-
-	sort.Slice(transactions, sorter)
 }
 
 func (txs *transactions) isBodyToMe(body *block.Body) bool {

@@ -178,6 +178,34 @@ func (cache *TxCache) RemoveTxByHash(txHash []byte) bool {
 	return true
 }
 
+// RemoveTxBulk removes a bulk of transactions
+func (cache *TxCache) RemoveTxBulk(keys [][]byte) int {
+	// First, fetch the transactions from the "txByHash" map.
+	txsToRemove := cache.txByHash.getTxs(keys)
+	if len(txsToRemove) == 0 {
+		return 0
+	}
+
+	// Remove from the "bySender" structure
+	numRemovedFromBySender := 0
+	groups := GroupSortedTransactionsBySender(txsToRemove)
+	for _, group := range groups {
+		numRemovedFromBySender += cache.txListBySender.removeGroupOfTxs(group)
+	}
+
+	// Remove from the "byHash" structure
+	numRemovedFromByHash := cache.txByHash.RemoveTxsBulk(keys)
+	if int(numRemovedFromByHash) != numRemovedFromBySender {
+		// This could happen at high load and high concurrency, since RemoveTxBulk() does not execute within a critical section
+		log.Trace("TxCache.RemoveTxBulk(): slight inconsistency detected",
+			"numRemovedFromBySender", numRemovedFromBySender,
+			"numRemovedFromByHash", numRemovedFromByHash,
+		)
+	}
+
+	return numRemovedFromBySender
+}
+
 // NumBytes gets the approximate number of bytes stored in the cache
 func (cache *TxCache) NumBytes() int {
 	return int(cache.txByHash.numBytes.GetUint64())

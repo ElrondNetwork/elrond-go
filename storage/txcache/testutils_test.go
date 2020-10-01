@@ -2,6 +2,7 @@ package txcache
 
 import (
 	"encoding/binary"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -71,6 +72,15 @@ func (listForSender *txListForSender) getTxHashesAsStrings() []string {
 	return hashesAsStrings(hashes)
 }
 
+func getTxHashesOfTxWrappersAsStrings(txs []*WrappedTransaction) []string {
+	hashes := make([]string, 0, len(txs))
+	for _, tx := range txs {
+		hashes = append(hashes, string(tx.TxHash))
+	}
+
+	return hashes
+}
+
 func hashesAsStrings(hashes [][]byte) []string {
 	result := make([]string, len(hashes))
 	for i := 0; i < len(hashes); i++ {
@@ -99,6 +109,10 @@ func addManyTransactionsWithUniformDistribution(cache *TxCache, nSenders int, nT
 			cache.AddTx(tx)
 		}
 	}
+}
+
+func createDummiestTx(nonce uint64) *WrappedTransaction {
+	return createTx([]byte(fmt.Sprintf("%d", nonce)), ".", nonce)
 }
 
 func createTx(hash []byte, sender string, nonce uint64) *WrappedTransaction {

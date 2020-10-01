@@ -172,6 +172,54 @@ func Test_RemoveByTxHash(t *testing.T) {
 	require.Nil(t, foundTx)
 }
 
+func Test_RemoveTxBulk(t *testing.T) {
+	cache := newUnconstrainedCacheToTest()
+
+	cache.AddTx(createTx([]byte("hash-1"), "alice", 1))
+	cache.AddTx(createTx([]byte("hash-2"), "alice", 2))
+	cache.AddTx(createTx([]byte("hash-3"), "alice", 3))
+	cache.AddTx(createTx([]byte("hash-4"), "alice", 4))
+
+	hashes := hashesAsBytes([]string{"hash-1", "hash-2", "hash-3", "hash-4"})
+	numRemoved := cache.RemoveTxBulk(hashes)
+	require.Equal(t, 4, numRemoved)
+	require.Equal(t, 0, cache.Len())
+	require.True(t, cache.areInternalMapsConsistent())
+}
+
+func Test_RemoveTxBulk_NoneFound(t *testing.T) {
+	cache := newUnconstrainedCacheToTest()
+
+	cache.AddTx(createTx([]byte("hash-1"), "alice", 1))
+	cache.AddTx(createTx([]byte("hash-2"), "alice", 2))
+	cache.AddTx(createTx([]byte("hash-3"), "alice", 3))
+	cache.AddTx(createTx([]byte("hash-4"), "alice", 4))
+
+	hashes := hashesAsBytes([]string{"hash-7", "hash-8", "hash-9", "hash-10"})
+	numRemoved := cache.RemoveTxBulk(hashes)
+	require.Equal(t, 0, numRemoved)
+	require.Equal(t, 4, cache.Len())
+	require.True(t, cache.areInternalMapsConsistent())
+}
+
+func Test_RemoveTxBulk_EmptyLists(t *testing.T) {
+	// Empty listForSender
+	cache := newUnconstrainedCacheToTest()
+	hashes := hashesAsBytes([]string{"hash-7", "hash-8", "hash-9", "hash-10"})
+	numRemoved := cache.RemoveTxBulk(hashes)
+	require.Equal(t, 0, numRemoved)
+
+	// Empty txsToRemove
+	cache = newUnconstrainedCacheToTest()
+	cache.AddTx(createTx([]byte("hash-1"), "alice", 1))
+	cache.AddTx(createTx([]byte("hash-2"), "alice", 2))
+	hashes = hashesAsBytes([]string{})
+	numRemoved = cache.RemoveTxBulk(hashes)
+	require.Equal(t, 0, numRemoved)
+	require.Equal(t, 2, cache.Len())
+	require.True(t, cache.areInternalMapsConsistent())
+}
+
 func Test_CountTx_And_Len(t *testing.T) {
 	cache := newUnconstrainedCacheToTest()
 

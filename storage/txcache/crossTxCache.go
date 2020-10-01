@@ -96,6 +96,18 @@ func (cache *CrossTxCache) RemoveTxByHash(txHash []byte) bool {
 	return cache.RemoveWithResult(txHash)
 }
 
+// RemoveTxBulk removes a bulk of transactions
+func (cache *CrossTxCache) RemoveTxBulk(keys [][]byte) int {
+	numRemoved := 0
+	for _, key := range keys {
+		if cache.RemoveTxByHash(key) {
+			numRemoved++
+		}
+	}
+
+	return numRemoved
+}
+
 // ForEachTransaction iterates over the transactions in the cache
 func (cache *CrossTxCache) ForEachTransaction(function ForEachTransaction) {
 	cache.ForEachItem(func(key []byte, item interface{}) {

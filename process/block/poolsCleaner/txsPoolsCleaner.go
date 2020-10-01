@@ -243,7 +243,7 @@ func (tpc *txsPoolsCleaner) processReceivedTx(
 
 func (tpc *txsPoolsCleaner) cleanTxsPoolsIfNeeded() int {
 	numTxsCleaned := 0
-	hashesToRemove := make(map[string]storage.Cacher)
+	hashesToRemoveByStore := make(map[storage.Cacher][][]byte)
 
 	tpc.mutMapTxsRounds.Lock()
 	for hash, currTxInfo := range tpc.mapTxsRounds {
@@ -272,7 +272,7 @@ func (tpc *txsPoolsCleaner) cleanTxsPoolsIfNeeded() int {
 			continue
 		}
 
-		hashesToRemove[hash] = currTxInfo.txStore
+		hashesToRemoveByStore[currTxInfo.txStore] = append(hashesToRemoveByStore[currTxInfo.txStore], []byte(hash))
 		delete(tpc.mapTxsRounds, hash)
 		numTxsCleaned++
 
@@ -288,9 +288,20 @@ func (tpc *txsPoolsCleaner) cleanTxsPoolsIfNeeded() int {
 	tpc.mutMapTxsRounds.Unlock()
 
 	startTime := time.Now()
-	for hash, txStore := range hashesToRemove {
-		txStore.Remove([]byte(hash))
+
+	for store, hashes := range hashesToRemoveByStore {
+		storeWithRemoveTxBulk, ok := store.(interface{ RemoveTxBulk(keys [][]byte) int })
+		if ok {
+			numRemoved := storeWithRemoveTxBulk.RemoveTxBulk(hashes)
+			log.Debug("RemoveTxBulk()", "num", len(hashes), "numRemoved", numRemoved, "store", fmt.Sprintf("%T", store))
+		} else {
+			log.Debug("bulk removal not supported, will remove one by one", "num", len(hashes), "store", fmt.Sprintf("%T", store))
+			for _, hash := range hashes {
+				store.Remove(hash)
+			}
+		}
 	}
+
 	elapsedTime := time.Since(startTime)
 
 	if numTxsCleaned > 0 {

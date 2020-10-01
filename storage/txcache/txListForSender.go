@@ -31,6 +31,8 @@ type txListForSender struct {
 	numFailedSelections atomic.Counter
 	onScoreChange       scoreChangeCallback
 
+	insertionHint listForSenderHint
+
 	scoreChunkMutex sync.RWMutex
 	mutex           sync.RWMutex
 }
@@ -127,10 +129,19 @@ func (listForSender *txListForSender) findInsertionPlace(incomingTx *WrappedTran
 	incomingNonce := incomingTx.Tx.GetNonce()
 	incomingGasPrice := incomingTx.Tx.GetGasPrice()
 
-	for element := listForSender.items.Back(); element != nil; element = element.Prev() {
+	iterations := 0
+	defer listForSender.monitorOnFoundInsertionPlace(&iterations, incomingTx, listForSender.insertionHint, listForSender.items.Len())
+
+	element := listForSender.insertionHint.recallReversedTraversal(incomingNonce, listForSender.items.Back())
+
+	for ; element != nil; element = element.Prev() {
+		iterations++
+
 		currentTx := element.Value.(*WrappedTransaction)
 		currentTxNonce := currentTx.Tx.GetNonce()
 		currentTxGasPrice := currentTx.Tx.GetGasPrice()
+
+		listForSender.insertionHint.digestElement(element, currentTxNonce)
 
 		if incomingTx.sameAs(currentTx) {
 			// The incoming transaction will be discarded
@@ -161,6 +172,7 @@ func (listForSender *txListForSender) RemoveTx(tx *WrappedTransaction) bool {
 	defer listForSender.mutex.Unlock()
 
 	marker := listForSender.findListElementWithTx(tx)
+
 	isFound := marker != nil
 	if isFound {
 		listForSender.items.Remove(marker)
@@ -174,6 +186,7 @@ func (listForSender *txListForSender) RemoveTx(tx *WrappedTransaction) bool {
 func (listForSender *txListForSender) onRemovedListElement(element *list.Element) {
 	value := element.Value.(*WrappedTransaction)
 
+	listForSender.insertionHint.notifyRemoval(element)
 	listForSender.totalBytes.Subtract(value.Size)
 	listForSender.totalGas.Subtract(int64(estimateTxGas(value)))
 	listForSender.totalFee.Subtract(int64(estimateTxFee(value)))
@@ -184,20 +197,75 @@ func (listForSender *txListForSender) findListElementWithTx(txToFind *WrappedTra
 	txToFindHash := txToFind.TxHash
 	txToFindNonce := txToFind.Tx.GetNonce()
 
+	iterations := 0
+	defer listForSender.monitorOnFoundTransaction(&iterations, txToFind, listForSender.items.Len())
+
 	for element := listForSender.items.Front(); element != nil; element = element.Next() {
+		iterations++
+
 		value := element.Value.(*WrappedTransaction)
+		nonce := value.Tx.GetNonce()
 
-		if bytes.Equal(value.TxHash, txToFindHash) {
-			return element
-		}
-
-		// Optimization: stop search at this point, since the list is sorted by nonce
-		if value.Tx.GetNonce() > txToFindNonce {
+		// Optimization: first check nonce equality.
+		if nonce == txToFindNonce {
+			if bytes.Equal(value.TxHash, txToFindHash) {
+				return element
+			}
+		} else if nonce > txToFindNonce {
+			// Optimization: stop search at this point, since the list is sorted by nonce.
 			break
 		}
 	}
 
 	return nil
+}
+
+// RemoveSortedTransactions removes the provided list of transactions, assuming the list is given sorted by nonce
+func (listForSender *txListForSender) RemoveSortedTransactions(txsToRemove []*WrappedTransaction) int {
+	listForSender.mutex.Lock()
+	defer listForSender.mutex.Unlock()
+
+	numRemoved := 0
+	pointerInTxsToRemove := 0
+	pointerInTxs := listForSender.items.Front()
+
+	for pointerInTxs != nil && pointerInTxsToRemove < len(txsToRemove) {
+		nextInTxs := pointerInTxs.Next()
+
+		txToRemove := txsToRemove[pointerInTxsToRemove]
+		txToRemoveNonce := txToRemove.Tx.GetNonce()
+		txToRemoveHash := txToRemove.TxHash
+
+		tx := pointerInTxs.Value.(*WrappedTransaction)
+		txNonce := tx.Tx.GetNonce()
+		txHash := tx.TxHash
+
+		if txNonce == txToRemoveNonce {
+			if bytes.Equal(txHash, txToRemoveHash) {
+				listForSender.items.Remove(pointerInTxs)
+				listForSender.onRemovedListElement(pointerInTxs)
+				numRemoved++
+
+				// Advance pointers in both lists, we continue removal
+				pointerInTxsToRemove++
+				pointerInTxs = nextInTxs
+				continue
+			}
+		}
+
+		// Continue to search "txToRemove" in "listForSender"
+		if txNonce <= txToRemoveNonce {
+			pointerInTxs = nextInTxs
+			continue
+		}
+
+		// "txToRemove" doesn't exist in "listForSender", let's try to remove the next one
+		pointerInTxsToRemove++
+	}
+
+	// We only trigger the score change in the end
+	listForSender.triggerScoreChange()
+	return numRemoved
 }
 
 // IsEmpty checks whether the list is empty
