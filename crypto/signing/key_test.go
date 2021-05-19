@@ -1,6 +1,7 @@
 package signing_test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -9,6 +10,8 @@ import (
 	"github.com/ElrondNetwork/elrond-go/crypto"
 	"github.com/ElrondNetwork/elrond-go/crypto/mock"
 	"github.com/ElrondNetwork/elrond-go/crypto/signing"
+	"github.com/ElrondNetwork/elrond-go/crypto/signing/mcl"
+	"github.com/ElrondNetwork/elrond-go/hashing/sha256"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -171,6 +174,48 @@ func TestKeyGenerator_PrivateKeyFromByteArrayOK(t *testing.T) {
 	sc, _ := privKey.Scalar().(*mock.ScalarMock)
 
 	assert.Equal(t, sc.X, initScalar)
+}
+
+func TestKeyGenerator_PrivateKeyFromByteArrayRandomNilArrayShouldErr(t *testing.T) {
+	t.Parallel()
+
+	suite := createMockSuite()
+	kg := signing.NewKeyGenerator(suite)
+	privKey, err := kg.PrivateKeyFromByteArrayRandom(nil)
+
+	assert.Nil(t, privKey)
+	assert.Equal(t, crypto.ErrInvalidParam, err)
+}
+
+func TestKeyGenerator_PrivateKeyFromByteArrayRandomInvalidArrayShouldErr(t *testing.T) {
+	t.Parallel()
+
+	suite := createMockSuite()
+	kg := signing.NewKeyGenerator(suite)
+	privKeyBytes := invalidStr
+	privKey, err := kg.PrivateKeyFromByteArrayRandom(privKeyBytes)
+
+	assert.Nil(t, privKey)
+	assert.Equal(t, crypto.ErrInvalidPrivateKey, err)
+}
+
+func TestKeyGenerator_PrivateKeyFromByteArrayRandomOK(t *testing.T) {
+	t.Parallel()
+
+	suite := mcl.NewSuiteBLS12()
+	kg := signing.NewKeyGenerator(suite)
+	hasher := &sha256.Sha256{}
+	// generate a 32 bytes key
+	privKeyBytes := hasher.Compute("valid key")
+	privKey, err := kg.PrivateKeyFromByteArrayRandom(privKeyBytes)
+	assert.Nil(t, err)
+
+	sc, _ := privKey.Scalar().(*mcl.Scalar)
+
+	setString := sc.Scalar.GetString(16)
+	fmt.Println(hex.EncodeToString(privKeyBytes))
+	fmt.Println(hex.EncodeToString(hasher.Compute(string(privKeyBytes))))
+	assert.Equal(t, hex.EncodeToString(hasher.Compute(string(privKeyBytes))), setString)
 }
 
 func TestKeyGenerator_PublicKeyFromByteArrayNilArrayShouldErr(t *testing.T) {

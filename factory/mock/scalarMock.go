@@ -92,6 +92,11 @@ func (sm *ScalarMock) SetBytes([]byte) (crypto.Scalar, error) {
 	panic("implement me")
 }
 
+// SetFromRandomBytes sets the scalar from a byte-slice of random bytes
+func (sm *ScalarMock) SetFromRandomBytes([]byte) (crypto.Scalar, error) {
+	panic("implement me")
+}
+
 // GetUnderlyingObj returns the object the implementation wraps
 func (sm *ScalarMock) GetUnderlyingObj() interface{} {
 	if sm.GetUnderlyingObjStub != nil {

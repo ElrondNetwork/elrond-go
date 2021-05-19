@@ -1,6 +1,8 @@
 package multisig_test
 
 import (
+	"encoding/hex"
+	"fmt"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/core/check"
@@ -75,6 +77,12 @@ func createSigSharesBLS(
 
 	for i := uint16(0); i < grSize; i++ {
 		sk, pk := kg.GeneratePair()
+		key, _ := sk.Scalar().MarshalBinary()
+		pubKey, _ := pk.Point().MarshalBinary()
+
+		fmt.Println("privKey", hex.EncodeToString(key))
+		fmt.Println("pubKey", hex.EncodeToString(pubKey))
+
 		privKeys[i] = sk
 		pubKeys[i] = pk
 

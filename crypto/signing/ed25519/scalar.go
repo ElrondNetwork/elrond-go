@@ -172,6 +172,14 @@ func (es *ed25519Scalar) SetBytes(_ []byte) (crypto.Scalar, error) {
 	return nil, crypto.ErrNotImplemented
 }
 
+// SetFromRandomBytes sets the scalar from a byte-slice of random bytes
+func (es *ed25519Scalar) SetFromRandomBytes(_ []byte) (crypto.Scalar, error) {
+	log.Error("ed25519Scalar",
+		"message", "SetFromRandomBytes for ed25519Scalar is not implemented, should not be called")
+
+	return nil, crypto.ErrNotImplemented
+}
+
 // IsInterfaceNil returns true if there is no value under the interface
 func (es *ed25519Scalar) IsInterfaceNil() bool {
 	return es == nil

@@ -249,6 +249,26 @@ func (sc *Scalar) SetBytes(s []byte) (crypto.Scalar, error) {
 	return s1, nil
 }
 
+// SetFromRandomBytes sets the scalar from a byte-slice of random bytes
+func (sc *Scalar) SetFromRandomBytes(s []byte) (crypto.Scalar, error) {
+	if len(s) == 0 {
+		return nil, crypto.ErrNilParam
+	}
+
+	s1 := sc.Clone()
+	s1Mcl, ok := s1.(*Scalar)
+	if !ok {
+		return nil, crypto.ErrInvalidScalar
+	}
+
+	result := s1Mcl.Scalar.SetHashOf(s)
+	if result != true {
+		return nil, crypto.ErrInvalidParam
+	}
+
+	return s1, nil
+}
+
 // GetUnderlyingObj returns the object the implementation wraps
 func (sc *Scalar) GetUnderlyingObj() interface{} {
 	return sc.Scalar

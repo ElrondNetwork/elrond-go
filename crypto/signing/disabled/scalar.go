@@ -85,6 +85,11 @@ func (ds *disabledScalar) SetBytes(_ []byte) (crypto.Scalar, error) {
 	return &disabledScalar{}, nil
 }
 
+// SetFromRandomBytes returns a new disabledScalar instance
+func (ds *disabledScalar) SetFromRandomBytes(_ []byte) (crypto.Scalar, error) {
+	return &disabledScalar{}, nil
+}
+
 // GetUnderlyingObj returns nil
 func (ds *disabledScalar) GetUnderlyingObj() interface{} {
 	return nil
