@@ -1,0 +1,11 @@
+init
+initialVariablesAndCallsTest
+addEcTest
+doubleEcTest
+isOnCurveEcTest
+marshalEcTest
+unmarshalEcTest
+marshalCompressedEcTest
+unmarshalCompressedEcTest
+generateKeyEcTest
+scalarMultEcTest

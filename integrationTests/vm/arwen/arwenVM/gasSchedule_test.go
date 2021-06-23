@@ -104,6 +104,46 @@ func Benchmark_TestCryptoSecp256k1Compressed(b *testing.B) {
 	runWASMVMBenchmark(b, "../testdata/c-api-tests/crypto/output/cryptoTest.wasm", 0, "verifySecp256k1CompressedKeyTest", nil, b.N, nil)
 }
 
+func Benchmark_TestEllipticCurveInitialVariablesAndCalls(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "initialVariablesAndCallsTest", nil, b.N, nil)
+}
+
+func Benchmark_TestEllipticCurveAdd(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "addEcTest", nil, b.N, nil)
+}
+
+func Benchmark_TestEllipticCurveDouble(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "doubleEcTest", nil, b.N, nil)
+}
+
+func Benchmark_TestEllipticCurveIsOnCurve(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "isOnCurveEcTest", nil, b.N, nil)
+}
+
+func Benchmark_TestEllipticCurveMarshal(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "marshalEcTest", nil, b.N, nil)
+}
+
+func Benchmark_TestEllipticCurveUnmarshal(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "unmarshalEcTest", nil, b.N, nil)
+}
+
+func Benchmark_TestEllipticCurveMarshalCompressed(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "marshalCompressedEcTest", nil, b.N, nil)
+}
+
+func Benchmark_TestEllipticCurveUnmarshalCompressed(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "unmarshalCompressedEcTest", nil, b.N, nil)
+}
+
+func Benchmark_TestEllipticCurveGenerateKey(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "generateKeyEcTest", nil, b.N, nil)
+}
+
+func Benchmark_TestEllipticCurveScalarMult(b *testing.B) {
+	runWASMVMBenchmark(b, "../testdata/c-api-tests/ecBenchmark/output/ecBenchmark.wasm", 0, "scalarMultEcTest", nil, b.N, nil)
+}
+
 func Benchmark_TestCryptoDoNothing(b *testing.B) {
 	runWASMVMBenchmark(b, "../testdata/c-api-tests/crypto/output/cryptoTest.wasm", 0, "doNothing", nil, b.N, nil)
 }

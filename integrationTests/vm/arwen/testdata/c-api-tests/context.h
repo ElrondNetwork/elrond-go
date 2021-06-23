@@ -8,6 +8,25 @@ void getOwnerAddress(byte *address);
 int getShardOfAddress(byte *address);
 int isSmartContract(byte *address);
 
+// EllipticCurve-Related functions
+void addEC(int xResultHandle, int yResultHandle, int ecHandle, int fstPointXHandle, int fstPointYHandle, int sndPointXHandle, int sndPointYHandle);
+void doubleEC(int xResultHandle, int yResultHandle, int ecHandle, int pointXHandle, int pointYHandle);
+int isOnCurveEC(int ecHandle, int pointXHandle, int pointYHandle);
+int scalarBaseMultEC(int xResultHandle, int yResultHandle, int ecHandle, byte *dataOffset, int length);
+int scalarMultEC(int xResultHandle, int yResultHandle, int ecHandle, int pointXHandle, int pointYHandle, byte *dataOffset, int length);
+int marshalEC(int xPairHandle, int yPairHandle, int ecHandle, byte *resultOffset);
+int unmarshalEC(int xResultHandle, int yResultHandle, int ecHandle, byte *dataOffset, int length);
+int marshalCompressedEC(int xPairHandle, int yPairHandle, int ecHandle, byte *resultOffset);
+int unmarshalCompressedEC(int xResultHandle, int yResultHandle, int ecHandle, byte *dataOffset, int length);
+int generateKeyEC(int xPubKeyHandle, int yPubKeyHandle, int ecHandle, byte *resultOffset);
+int p224Ec();
+int p256Ec();
+int p384Ec();
+int p521Ec();
+int getCurveLengthEC(int ecHandle);
+int getPrivKeyByteLengthEC(int ecHandle);
+int ellipticCurveGetValues(int ecHandle, int fieldOrderHandle, int basePointOrderHandle, int eqConstantHandle, int xBasePointHandle, int yBasePointHandle);
+
 // Call-related functions
 void getCaller(byte *callerAddress);
 int getFunction(byte *function);
