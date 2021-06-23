@@ -14,6 +14,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
 	"github.com/ElrondNetwork/elrond-go/storage"
+	"github.com/ElrondNetwork/elrond-go/update"
 )
 
 type baseAccountsSyncer struct {
@@ -31,6 +32,7 @@ type baseAccountsSyncer struct {
 	name                      string
 	maxHardCapForMissingNodes int
 	trieSyncerVersion         int
+	trieExporter              update.TrieExporter
 }
 
 const timeBetweenStatisticsPrints = time.Second * 2
@@ -46,6 +48,7 @@ type ArgsNewBaseAccountsSyncer struct {
 	MaxTrieLevelInMemory      uint
 	MaxHardCapForMissingNodes int
 	TrieSyncerVersion         int
+	TrieExporter              update.TrieExporter
 }
 
 func checkArgs(args ArgsNewBaseAccountsSyncer) error {
@@ -66,6 +69,9 @@ func checkArgs(args ArgsNewBaseAccountsSyncer) error {
 	}
 	if args.MaxHardCapForMissingNodes < 1 {
 		return state.ErrInvalidMaxHardCapForMissingNodes
+	}
+	if check.IfNil(args.TrieExporter) {
+		return state.ErrNilTrieExporter
 	}
 
 	return trie.CheckTrieSyncerVersion(args.TrieSyncerVersion)
@@ -126,32 +132,9 @@ func (b *baseAccountsSyncer) printStatistics(ssh data.SyncStatisticsHandler, ctx
 	}
 }
 
-// Deprecated: GetSyncedTries returns the synced map of data trie. This is likely to case OOM exceptions
-//TODO remove this function after fixing the hardfork sync state mechanism
-func (b *baseAccountsSyncer) GetSyncedTries() map[string]data.Trie {
-	b.mutex.Lock()
-	defer b.mutex.Unlock()
-
-	dataTrie, err := trie.NewTrie(b.trieStorageManager, b.marshalizer, b.hasher, b.maxTrieLevelInMemory)
-	if err != nil {
-		log.Warn("error creating a new trie in baseAccountsSyncer.GetSyncedTries", "error", err)
-		return make(map[string]data.Trie)
-	}
-
-	var recreatedTrie data.Trie
-	clonedMap := make(map[string]data.Trie, len(b.dataTries))
-	for key := range b.dataTries {
-		recreatedTrie, err = dataTrie.Recreate([]byte(key))
-		if err != nil {
-			log.Warn("error recreating trie in baseAccountsSyncer.GetSyncedTries",
-				"roothash", []byte(key), "error", err)
-			continue
-		}
-
-		clonedMap[key] = recreatedTrie
-	}
-
-	return clonedMap
+// GetTrieExporter returns the trie exporter
+func (b *baseAccountsSyncer) GetTrieExporter() update.TrieExporter {
+	return b.trieExporter
 }
 
 // IsInterfaceNil returns true if underlying object is nil

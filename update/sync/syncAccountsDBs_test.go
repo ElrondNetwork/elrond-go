@@ -1,8 +1,10 @@
 package sync
 
 import (
+	"bytes"
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/state"
@@ -28,10 +30,25 @@ func TestNewSyncState_NilTrieSyncersShouldErr(t *testing.T) {
 func TestNewSyncState(t *testing.T) {
 	t.Parallel()
 
+	metaRootHash := []byte("metaRootHash")
+	shardRootHash := []byte("shardDataRootHash")
+	metaStateSynced := false
+	shardStateSynced := false
+
 	args := ArgsNewSyncAccountsDBsHandler{
 		AccountsDBsSyncers: &mock.AccountsDBSyncersStub{
 			GetCalled: func(key string) (syncer update.AccountsDBSyncer, err error) {
-				return &mock.AccountsDBSyncerStub{}, nil
+				return &mock.AccountsDBSyncerStub{
+					SyncAccountsCalled: func(rootHash []byte, shardId uint32) error {
+						if bytes.Equal(rootHash, metaRootHash) {
+							metaStateSynced = true
+						}
+						if bytes.Equal(rootHash, shardRootHash) {
+							shardStateSynced = true
+						}
+						return nil
+					},
+				}, nil
 			},
 		},
 		ActiveAccountsDBs: make(map[state.AccountsDbIdentifier]state.AccountsAdapter),
@@ -57,18 +74,23 @@ func TestNewSyncState(t *testing.T) {
 	require.Nil(t, err)
 
 	metaBlock := &block.MetaBlock{
-		Nonce: 1, Epoch: 1, RootHash: []byte("metaRootHash"),
+		Nonce: 1, Epoch: 1, RootHash: metaRootHash,
 		EpochStart: block.EpochStart{
 			LastFinalizedHeaders: []block.EpochStartShardData{
-				{ShardID: 0, RootHash: []byte("shardDataRootHash")},
+				{ShardID: 0, RootHash: shardRootHash},
 			},
 		},
 	}
 
-	err = triesSyncHandler.SyncTriesFrom(metaBlock)
+	err = triesSyncHandler.SyncTriesFrom(metaBlock, 0)
 	require.Nil(t, err)
 
-	tries, err := triesSyncHandler.GetTries()
-	assert.NotNil(t, tries)
-	assert.Nil(t, err)
+	assert.True(t, metaStateSynced)
+	assert.True(t, shardStateSynced)
+
+	err = triesSyncHandler.SyncTriesFrom(metaBlock, core.MetachainShardId)
+	require.Nil(t, err)
+
+	err = triesSyncHandler.SyncTriesFrom(metaBlock, 1)
+	require.Equal(t, update.ErrInvalidOwnShardId, err)
 }

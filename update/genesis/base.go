@@ -209,17 +209,6 @@ func CreateVersionKey(meta *block.MetaBlock, hash []byte) string {
 	return "meta" + atSep + string(meta.ChainID) + atSep + hex.EncodeToString(hash)
 }
 
-// CreateAccountKey creates a key for an account according to its type, shard ID and address
-func CreateAccountKey(accType Type, shId uint32, address []byte) string {
-	key := CreateTrieIdentifier(shId, accType)
-	return key + atSep + hex.EncodeToString(address)
-}
-
-// CreateRootHashKey creates a key of type roothash for a given trie identifier
-func CreateRootHashKey(trieIdentifier string) string {
-	return "rt" + atSep + hex.EncodeToString([]byte(trieIdentifier))
-}
-
 // CreateTrieIdentifier creates a trie identifier according to trie type and shard id
 func CreateTrieIdentifier(shID uint32, accountType Type) string {
 	return fmt.Sprint("tr", atSep, shID, atSep, accountType)

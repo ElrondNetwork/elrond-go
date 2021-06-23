@@ -115,3 +115,6 @@ var ErrInvalidRootHash = errors.New("invalid root hash")
 
 // ErrInvalidMaxHardCapForMissingNodes signals that the maximum hardcap value for missing nodes is invalid
 var ErrInvalidMaxHardCapForMissingNodes = errors.New("invalid max hardcap for missing nodes")
+
+// ErrNilTrieExporter signals that nil trie exporter has been provided
+var ErrNilTrieExporter = errors.New("nil trie exporter")

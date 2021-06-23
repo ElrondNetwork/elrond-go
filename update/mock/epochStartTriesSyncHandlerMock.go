@@ -7,24 +7,16 @@ import (
 
 // EpochStartTriesSyncHandlerMock -
 type EpochStartTriesSyncHandlerMock struct {
-	SyncTriesFromCalled func(meta *block.MetaBlock) error
+	SyncTriesFromCalled func(meta *block.MetaBlock, ownShardId uint32) error
 	GetTriesCalled      func() (map[string]data.Trie, error)
 }
 
 // SyncTriesFrom -
-func (es *EpochStartTriesSyncHandlerMock) SyncTriesFrom(meta *block.MetaBlock) error {
+func (es *EpochStartTriesSyncHandlerMock) SyncTriesFrom(meta *block.MetaBlock, ownShardId uint32) error {
 	if es.SyncTriesFromCalled != nil {
-		return es.SyncTriesFromCalled(meta)
+		return es.SyncTriesFromCalled(meta, ownShardId)
 	}
 	return nil
-}
-
-// GetTries -
-func (es *EpochStartTriesSyncHandlerMock) GetTries() (map[string]data.Trie, error) {
-	if es.GetTriesCalled != nil {
-		return es.GetTriesCalled()
-	}
-	return nil, nil
 }
 
 // IsInterfaceNil -

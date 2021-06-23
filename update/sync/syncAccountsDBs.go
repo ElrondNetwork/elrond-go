@@ -18,7 +18,6 @@ import (
 var _ update.EpochStartTriesSyncHandler = (*syncAccountsDBs)(nil)
 
 type syncAccountsDBs struct {
-	tries              *concurrentTriesMap
 	accountsBDsSyncers update.AccountsDBSyncContainer
 	activeAccountsDBs  map[state.AccountsDbIdentifier]state.AccountsAdapter
 	mutSynced          sync.Mutex
@@ -38,7 +37,6 @@ func NewSyncAccountsDBsHandler(args ArgsNewSyncAccountsDBsHandler) (*syncAccount
 	}
 
 	st := &syncAccountsDBs{
-		tries:              newConcurrentTriesMap(),
 		accountsBDsSyncers: args.AccountsDBsSyncers,
 		activeAccountsDBs:  make(map[state.AccountsDbIdentifier]state.AccountsAdapter),
 		synced:             false,
@@ -52,53 +50,43 @@ func NewSyncAccountsDBsHandler(args ArgsNewSyncAccountsDBsHandler) (*syncAccount
 }
 
 // SyncTriesFrom syncs all the state tries from an epoch start metachain
-func (st *syncAccountsDBs) SyncTriesFrom(meta *block.MetaBlock) error {
+func (st *syncAccountsDBs) SyncTriesFrom(meta *block.MetaBlock, ownShardId uint32) error {
 	if !meta.IsStartOfEpochBlock() && meta.Nonce > 0 {
 		return update.ErrNotEpochStartBlock
 	}
-
-	var errFound error
-	mutErr := sync.Mutex{}
 
 	st.mutSynced.Lock()
 	st.synced = false
 	st.mutSynced.Unlock()
 
-	wg := sync.WaitGroup{}
-	wg.Add(1 + len(meta.EpochStart.LastFinalizedHeaders))
+	numHeadersToSync := len(meta.EpochStart.LastFinalizedHeaders) + 1
+	tempMetaShardId := numHeadersToSync - 1
 
-	chDone := make(chan bool)
-	go func() {
-		wg.Wait()
-		chDone <- true
-	}()
-
-	go func() {
-		errMeta := st.syncMeta(meta)
-		if errMeta != nil {
-			mutErr.Lock()
-			errFound = errMeta
-			mutErr.Unlock()
-		}
-		wg.Done()
-	}()
-
-	for _, shData := range meta.EpochStart.LastFinalizedHeaders {
-		go func(shardData block.EpochStartShardData) {
-			err := st.syncShard(shardData)
-			if err != nil {
-				mutErr.Lock()
-				errFound = err
-				mutErr.Unlock()
-			}
-			wg.Done()
-		}(shData)
+	invalidShardId := int(ownShardId) > len(meta.EpochStart.LastFinalizedHeaders)-1 && ownShardId != core.MetachainShardId
+	if invalidShardId {
+		return update.ErrInvalidOwnShardId
 	}
 
-	<-chDone
+	if ownShardId == core.MetachainShardId {
+		ownShardId = uint32(tempMetaShardId)
+	}
 
-	if errFound != nil {
-		return errFound
+	for i := 0; i < numHeadersToSync; i++ {
+		headerToSync := (i + int(ownShardId)) % numHeadersToSync
+
+		if headerToSync == tempMetaShardId {
+			err := st.syncMeta(meta)
+			if err != nil {
+				return err
+			}
+
+			continue
+		}
+
+		err := st.syncShard(meta.EpochStart.LastFinalizedHeaders[headerToSync])
+		if err != nil {
+			return err
+		}
 	}
 
 	st.mutSynced.Lock()
@@ -109,12 +97,22 @@ func (st *syncAccountsDBs) SyncTriesFrom(meta *block.MetaBlock) error {
 }
 
 func (st *syncAccountsDBs) syncMeta(meta *block.MetaBlock) error {
-	err := st.syncAccountsOfType(genesis.UserAccount, state.UserAccountsState, core.MetachainShardId, meta.RootHash)
+	err := st.syncAccountsOfType(
+		genesis.UserAccount,
+		state.UserAccountsState,
+		core.MetachainShardId,
+		meta.RootHash,
+	)
 	if err != nil {
 		return fmt.Errorf("%w UserAccount, shard: meta", err)
 	}
 
-	err = st.syncAccountsOfType(genesis.ValidatorAccount, state.PeerAccountsState, core.MetachainShardId, meta.ValidatorStatsRootHash)
+	err = st.syncAccountsOfType(
+		genesis.ValidatorAccount,
+		state.PeerAccountsState,
+		core.MetachainShardId,
+		meta.ValidatorStatsRootHash,
+	)
 	if err != nil {
 		return fmt.Errorf("%w ValidatorAccount, shard: meta", err)
 	}
@@ -123,14 +121,24 @@ func (st *syncAccountsDBs) syncMeta(meta *block.MetaBlock) error {
 }
 
 func (st *syncAccountsDBs) syncShard(shardData block.EpochStartShardData) error {
-	err := st.syncAccountsOfType(genesis.UserAccount, state.UserAccountsState, shardData.ShardID, shardData.RootHash)
+	err := st.syncAccountsOfType(
+		genesis.UserAccount,
+		state.UserAccountsState,
+		shardData.ShardID,
+		shardData.RootHash,
+	)
 	if err != nil {
 		return fmt.Errorf("%w UserAccount, shard: %d", err, shardData.ShardID)
 	}
 	return nil
 }
 
-func (st *syncAccountsDBs) syncAccountsOfType(accountType genesis.Type, trieID state.AccountsDbIdentifier, shardId uint32, rootHash []byte) error {
+func (st *syncAccountsDBs) syncAccountsOfType(
+	accountType genesis.Type,
+	trieID state.AccountsDbIdentifier,
+	shardId uint32,
+	rootHash []byte,
+) error {
 	accAdapterIdentifier := genesis.CreateTrieIdentifier(shardId, accountType)
 
 	log.Debug("syncing accounts",
@@ -139,49 +147,34 @@ func (st *syncAccountsDBs) syncAccountsOfType(accountType genesis.Type, trieID s
 		"root hash", rootHash,
 	)
 
-	success := st.tryRecreateTrie(shardId, accAdapterIdentifier, trieID, rootHash)
-	if success {
-		return nil
-	}
-
 	accountsDBSyncer, err := st.accountsBDsSyncers.Get(accAdapterIdentifier)
 	if err != nil {
 		return err
 	}
 
-	err = accountsDBSyncer.SyncAccounts(rootHash)
-	if err != nil {
-		// TODO: critical error - should not happen - maybe recreate trie syncer here
-		return err
+	success := st.tryRecreateTrie(
+		shardId,
+		accAdapterIdentifier,
+		trieID,
+		rootHash,
+		accountsDBSyncer.GetTrieExporter(),
+		accountType,
+	)
+	if success {
+		return nil
 	}
 
-	st.setTries(shardId, accAdapterIdentifier, rootHash, accountsDBSyncer.GetSyncedTries())
-
-	return nil
+	return accountsDBSyncer.SyncAccounts(rootHash, shardId)
 }
 
-func (st *syncAccountsDBs) setTries(shId uint32, initialID string, rootHash []byte, tries map[string]data.Trie) {
-	for hash, currentTrie := range tries {
-		if bytes.Equal(rootHash, []byte(hash)) {
-			st.tries.setTrie(initialID, currentTrie)
-			continue
-		}
-
-		dataTrieIdentifier := genesis.CreateTrieIdentifier(shId, genesis.DataTrie)
-		identifier := genesis.AddRootHashToIdentifier(dataTrieIdentifier, hash)
-		st.tries.setTrie(identifier, currentTrie)
-	}
-}
-
-func (st *syncAccountsDBs) tryRecreateTrie(shardId uint32, id string, trieID state.AccountsDbIdentifier, rootHash []byte) bool {
-	savedTrie, ok := st.tries.getTrie(id)
-	if ok {
-		currHash, err := savedTrie.RootHash()
-		if err == nil && bytes.Equal(currHash, rootHash) {
-			return true
-		}
-	}
-
+func (st *syncAccountsDBs) tryRecreateTrie(
+	shardId uint32,
+	id string,
+	trieID state.AccountsDbIdentifier,
+	rootHash []byte,
+	trieExporter update.TrieExporter,
+	accountType genesis.Type,
+) bool {
 	activeTrie := st.activeAccountsDBs[trieID]
 	if check.IfNil(activeTrie) {
 		return false
@@ -200,21 +193,41 @@ func (st *syncAccountsDBs) tryRecreateTrie(shardId uint32, id string, trieID sta
 		}
 	}
 
-	st.setTries(shardId, id, rootHash, tries)
+	// TODO investigate if this can raise an OOM issue
+	for hash, tr := range tries {
+		if bytes.Equal(rootHash, []byte(hash)) {
+			err = exportTrie(trieExporter, id, tr, ctx, accountType)
+			if err != nil {
+				return false
+			}
+
+			continue
+		}
+
+		dataTrieIdentifier := genesis.CreateTrieIdentifier(shardId, genesis.DataTrie)
+		identifier := genesis.AddRootHashToIdentifier(dataTrieIdentifier, hash)
+		err = trieExporter.ExportDataTrie(identifier, tr, ctx)
+		if err != nil {
+			return false
+		}
+	}
 
 	return true
 }
 
-// GetTries returns the synced tries
-func (st *syncAccountsDBs) GetTries() (map[string]data.Trie, error) {
-	st.mutSynced.Lock()
-	defer st.mutSynced.Unlock()
-
-	if !st.synced {
-		return nil, update.ErrNotSynced
+func exportTrie(
+	trieExporter update.TrieExporter,
+	id string,
+	tr data.Trie,
+	ctx context.Context,
+	accountType genesis.Type,
+) error {
+	if accountType == genesis.UserAccount {
+		_, err := trieExporter.ExportMainTrie(id, tr, ctx)
+		return err
 	}
 
-	return st.tries.getTries(), nil
+	return trieExporter.ExportValidatorTrie(tr, ctx)
 }
 
 // IsInterfaceNil returns nil if underlying object is nil

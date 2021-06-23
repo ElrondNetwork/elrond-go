@@ -28,6 +28,7 @@ import (
 	storageFactory "github.com/ElrondNetwork/elrond-go/storage/factory"
 	"github.com/ElrondNetwork/elrond-go/storage/storageUnit"
 	"github.com/ElrondNetwork/elrond-go/testscommon"
+	"github.com/ElrondNetwork/elrond-go/update/genesis/trieExport"
 	"github.com/ElrondNetwork/elrond-go/vm/systemSmartContracts/defaults"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -270,6 +271,8 @@ func TestMultipleDataTriesSync(t *testing.T) {
 		time.Second,
 	)
 
+	inactiveTrieExporter, _ := trieExport.NewInactiveTrieExporter(integrationTests.TestMarshalizer)
+
 	thr, _ := throttler.NewNumGoRoutinesThrottler(50)
 	syncerArgs := syncer.ArgsNewUserAccountsSyncer{
 		ArgsNewBaseAccountsSyncer: syncer.ArgsNewBaseAccountsSyncer{
@@ -282,6 +285,7 @@ func TestMultipleDataTriesSync(t *testing.T) {
 			MaxTrieLevelInMemory:      200,
 			MaxHardCapForMissingNodes: 5000,
 			TrieSyncerVersion:         2,
+			TrieExporter:              inactiveTrieExporter,
 		},
 		ShardId:   shardID,
 		Throttler: thr,
@@ -290,7 +294,7 @@ func TestMultipleDataTriesSync(t *testing.T) {
 	userAccSyncer, err := syncer.NewUserAccountsSyncer(syncerArgs)
 	assert.Nil(t, err)
 
-	err = userAccSyncer.SyncAccounts(rootHash)
+	err = userAccSyncer.SyncAccounts(rootHash, shardID)
 	assert.Nil(t, err)
 
 	_ = nRequester.AccntState.RecreateTrie(rootHash)

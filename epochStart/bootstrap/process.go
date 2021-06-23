@@ -38,6 +38,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/storage/storageUnit"
 	"github.com/ElrondNetwork/elrond-go/storage/timecache"
 	"github.com/ElrondNetwork/elrond-go/update"
+	"github.com/ElrondNetwork/elrond-go/update/genesis/trieExport"
 	"github.com/ElrondNetwork/elrond-go/update/sync"
 )
 
@@ -843,6 +844,11 @@ func (e *epochStartBootstrap) syncUserAccountsState(rootHash []byte) error {
 		return err
 	}
 
+	inactiveTrieExporter, err := trieExport.NewInactiveTrieExporter(e.marshalizer)
+	if err != nil {
+		return err
+	}
+
 	argsUserAccountsSyncer := syncer.ArgsNewUserAccountsSyncer{
 		ArgsNewBaseAccountsSyncer: syncer.ArgsNewBaseAccountsSyncer{
 			Hasher:                    e.hasher,
@@ -854,6 +860,7 @@ func (e *epochStartBootstrap) syncUserAccountsState(rootHash []byte) error {
 			MaxTrieLevelInMemory:      e.generalConfig.StateTriesConfig.MaxStateTrieLevelInMemory,
 			MaxHardCapForMissingNodes: e.maxHardCapForMissingNodes,
 			TrieSyncerVersion:         e.trieSyncerVersion,
+			TrieExporter:              inactiveTrieExporter,
 		},
 		ShardId:   e.shardCoordinator.SelfId(),
 		Throttler: thr,
@@ -863,7 +870,7 @@ func (e *epochStartBootstrap) syncUserAccountsState(rootHash []byte) error {
 		return err
 	}
 
-	err = accountsDBSyncer.SyncAccounts(rootHash)
+	err = accountsDBSyncer.SyncAccounts(rootHash, e.shardCoordinator.SelfId())
 	if err != nil {
 		return err
 	}
@@ -916,6 +923,11 @@ func (e *epochStartBootstrap) createTriesComponentsForShardId(shardId uint32) er
 }
 
 func (e *epochStartBootstrap) syncPeerAccountsState(rootHash []byte) error {
+	inactiveTrieExporter, err := trieExport.NewInactiveTrieExporter(e.marshalizer)
+	if err != nil {
+		return err
+	}
+
 	argsValidatorAccountsSyncer := syncer.ArgsNewValidatorAccountsSyncer{
 		ArgsNewBaseAccountsSyncer: syncer.ArgsNewBaseAccountsSyncer{
 			Hasher:                    e.hasher,
@@ -927,6 +939,7 @@ func (e *epochStartBootstrap) syncPeerAccountsState(rootHash []byte) error {
 			MaxTrieLevelInMemory:      e.generalConfig.StateTriesConfig.MaxPeerTrieLevelInMemory,
 			MaxHardCapForMissingNodes: e.maxHardCapForMissingNodes,
 			TrieSyncerVersion:         e.trieSyncerVersion,
+			TrieExporter:              inactiveTrieExporter,
 		},
 	}
 	accountsDBSyncer, err := syncer.NewValidatorAccountsSyncer(argsValidatorAccountsSyncer)
@@ -934,7 +947,7 @@ func (e *epochStartBootstrap) syncPeerAccountsState(rootHash []byte) error {
 		return err
 	}
 
-	err = accountsDBSyncer.SyncAccounts(rootHash)
+	err = accountsDBSyncer.SyncAccounts(rootHash, e.shardCoordinator.SelfId())
 	if err != nil {
 		return err
 	}

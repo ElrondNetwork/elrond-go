@@ -662,9 +662,9 @@
 	CloseAfterExportInMinutes = 10000
 	AfterHardFork = false
 	ImportFolder = "export"
-	StartRound = 10000
-	StartNonce = 10000
-	StartEpoch = 100
+	StartRound = 1000000
+	StartNonce = 1000000
+	StartEpoch = 10000
 	GenesisTime = 0
 	ValidatorGracePeriodInEpochs = 1 #defines how long is the rating computation disabled after hardfork
 	[Hardfork.ExportStateStorageConfig]

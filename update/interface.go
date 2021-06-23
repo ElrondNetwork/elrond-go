@@ -11,12 +11,19 @@ import (
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
 
+// TrieExporter interface defines methods needed to export the state from a trie
+type TrieExporter interface {
+	ExportValidatorTrie(trie data.Trie, ctx context.Context) error
+	ExportMainTrie(key string, trie data.Trie, ctx context.Context) ([][]byte, error)
+	ExportDataTrie(key string, trie data.Trie, ctx context.Context) error
+	IsInterfaceNil() bool
+}
+
 // StateSyncer interface defines the methods needed to sync and get all states
 type StateSyncer interface {
 	GetEpochStartMetaBlock() (*block.MetaBlock, error)
 	GetUnFinishedMetaBlocks() (map[string]*block.MetaBlock, error)
-	SyncAllState(epoch uint32) error
-	GetAllTries() (map[string]data.Trie, error)
+	SyncAllState(epoch uint32, ownShardId uint32) error
 	GetAllTransactions() (map[string]data.TransactionHandler, error)
 	GetAllMiniBlocks() (map[string]*block.MiniBlock, error)
 	IsInterfaceNil() bool
@@ -125,8 +132,7 @@ type HeaderSyncHandler interface {
 
 // EpochStartTriesSyncHandler defines the methods to sync all tries from a given epoch start metablock
 type EpochStartTriesSyncHandler interface {
-	SyncTriesFrom(meta *block.MetaBlock) error
-	GetTries() (map[string]data.Trie, error)
+	SyncTriesFrom(meta *block.MetaBlock, ownShardId uint32) error
 	IsInterfaceNil() bool
 }
 
@@ -168,8 +174,8 @@ type WhiteListHandler interface {
 
 // AccountsDBSyncer defines the methods for the accounts db syncer
 type AccountsDBSyncer interface {
-	GetSyncedTries() map[string]data.Trie
-	SyncAccounts(rootHash []byte) error
+	SyncAccounts(rootHash []byte, shardId uint32) error
+	GetTrieExporter() TrieExporter
 	IsInterfaceNil() bool
 }
 

@@ -69,7 +69,7 @@ func TestAccountDBSyncers_ReplaceShouldWork(t *testing.T) {
 
 	// update
 	newTestVal := &mock.AccountsDBSyncerStub{
-		SyncAccountsCalled: func(_ []byte) error {
+		SyncAccountsCalled: func(_ []byte, _ uint32) error {
 			return errors.New("local error")
 		},
 	}

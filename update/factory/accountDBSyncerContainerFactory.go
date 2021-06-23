@@ -31,6 +31,7 @@ type ArgsNewAccountsDBSyncersContainerFactory struct {
 	NumConcurrentTrieSyncers  int
 	MaxHardCapForMissingNodes int
 	TrieSyncerVersion         int
+	TrieExporter              update.TrieExporter
 }
 
 type accountDBSyncersContainerFactory struct {
@@ -46,6 +47,7 @@ type accountDBSyncersContainerFactory struct {
 	numConcurrentTrieSyncers  int
 	maxHardCapForMissingNodes int
 	trieSyncerVersion         int
+	trieExporter              update.TrieExporter
 }
 
 // NewAccountsDBSContainerFactory creates a factory for trie syncers container
@@ -78,6 +80,9 @@ func NewAccountsDBSContainerFactory(args ArgsNewAccountsDBSyncersContainerFactor
 	if err != nil {
 		return nil, err
 	}
+	if check.IfNil(args.TrieExporter) {
+		return nil, update.ErrNilTrieExporter
+	}
 
 	t := &accountDBSyncersContainerFactory{
 		shardCoordinator:          args.ShardCoordinator,
@@ -91,6 +96,7 @@ func NewAccountsDBSContainerFactory(args ArgsNewAccountsDBSyncersContainerFactor
 		numConcurrentTrieSyncers:  args.NumConcurrentTrieSyncers,
 		maxHardCapForMissingNodes: args.MaxHardCapForMissingNodes,
 		trieSyncerVersion:         args.TrieSyncerVersion,
+		trieExporter:              args.TrieExporter,
 	}
 
 	return t, nil
@@ -137,6 +143,7 @@ func (a *accountDBSyncersContainerFactory) createUserAccountsSyncer(shardId uint
 			MaxTrieLevelInMemory:      a.maxTrieLevelinMemory,
 			MaxHardCapForMissingNodes: a.maxHardCapForMissingNodes,
 			TrieSyncerVersion:         a.trieSyncerVersion,
+			TrieExporter:              a.trieExporter,
 		},
 		ShardId:   shardId,
 		Throttler: thr,
@@ -162,6 +169,7 @@ func (a *accountDBSyncersContainerFactory) createValidatorAccountsSyncer(shardId
 			MaxTrieLevelInMemory:      a.maxTrieLevelinMemory,
 			MaxHardCapForMissingNodes: a.maxHardCapForMissingNodes,
 			TrieSyncerVersion:         a.trieSyncerVersion,
+			TrieExporter:              a.trieExporter,
 		},
 	}
 	accountSyncer, err := syncer.NewValidatorAccountsSyncer(args)

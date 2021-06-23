@@ -41,6 +41,7 @@ func NewValidatorAccountsSyncer(args ArgsNewValidatorAccountsSyncer) (*validator
 		name:                      "peer accounts",
 		maxHardCapForMissingNodes: args.MaxHardCapForMissingNodes,
 		trieSyncerVersion:         args.TrieSyncerVersion,
+		trieExporter:              args.TrieExporter,
 	}
 
 	u := &validatorAccountsSyncer{
@@ -51,7 +52,7 @@ func NewValidatorAccountsSyncer(args ArgsNewValidatorAccountsSyncer) (*validator
 }
 
 // SyncAccounts will launch the syncing method to gather all the data needed for validatorAccounts - it is a blocking method
-func (v *validatorAccountsSyncer) SyncAccounts(rootHash []byte) error {
+func (v *validatorAccountsSyncer) SyncAccounts(rootHash []byte, _ uint32) error {
 	v.mutex.Lock()
 	defer v.mutex.Unlock()
 
@@ -61,7 +62,10 @@ func (v *validatorAccountsSyncer) SyncAccounts(rootHash []byte) error {
 	tss := statistics.NewTrieSyncStatistics()
 	go v.printStatistics(tss, ctx)
 
-	_, err := v.syncMainTrie(rootHash, factory.ValidatorTrieNodesTopic, tss, ctx)
+	mainTrie, err := v.syncMainTrie(rootHash, factory.ValidatorTrieNodesTopic, tss, ctx)
+	if err != nil {
+		return err
+	}
 
-	return err
+	return v.trieExporter.ExportValidatorTrie(mainTrie, ctx)
 }

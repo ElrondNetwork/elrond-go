@@ -15,6 +15,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/trie/statistics"
 	"github.com/ElrondNetwork/elrond-go/epochStart"
 	"github.com/ElrondNetwork/elrond-go/process/factory"
+	"github.com/ElrondNetwork/elrond-go/update/genesis"
 )
 
 var _ epochStart.AccountsDBSyncer = (*userAccountsSyncer)(nil)
@@ -61,6 +62,7 @@ func NewUserAccountsSyncer(args ArgsNewUserAccountsSyncer) (*userAccountsSyncer,
 		name:                      fmt.Sprintf("user accounts for shard %s", core.GetShardIDString(args.ShardId)),
 		maxHardCapForMissingNodes: args.MaxHardCapForMissingNodes,
 		trieSyncerVersion:         args.TrieSyncerVersion,
+		trieExporter:              args.TrieExporter,
 	}
 
 	u := &userAccountsSyncer{
@@ -72,7 +74,7 @@ func NewUserAccountsSyncer(args ArgsNewUserAccountsSyncer) (*userAccountsSyncer,
 }
 
 // SyncAccounts will launch the syncing method to gather all the data needed for userAccounts - it is a blocking method
-func (u *userAccountsSyncer) SyncAccounts(rootHash []byte) error {
+func (u *userAccountsSyncer) SyncAccounts(rootHash []byte, shardId uint32) error {
 	u.mutex.Lock()
 	defer u.mutex.Unlock()
 
@@ -89,12 +91,13 @@ func (u *userAccountsSyncer) SyncAccounts(rootHash []byte) error {
 
 	log.Debug("main trie synced, starting to sync data tries", "num data tries", len(u.dataTries))
 
-	rootHashes, err := u.findAllAccountRootHashes(mainTrie, ctx)
+	accAdapterIdentifier := genesis.CreateTrieIdentifier(shardId, genesis.UserAccount)
+	rootHashes, err := u.trieExporter.ExportMainTrie(accAdapterIdentifier, mainTrie, ctx)
 	if err != nil {
 		return err
 	}
 
-	err = u.syncAccountDataTries(rootHashes, tss, ctx)
+	err = u.syncAccountDataTries(rootHashes, tss, ctx, shardId)
 	if err != nil {
 		return err
 	}
@@ -102,7 +105,12 @@ func (u *userAccountsSyncer) SyncAccounts(rootHash []byte) error {
 	return nil
 }
 
-func (u *userAccountsSyncer) syncAccountDataTries(rootHashes [][]byte, ssh data.SyncStatisticsHandler, ctx context.Context) error {
+func (u *userAccountsSyncer) syncAccountDataTries(
+	rootHashes [][]byte,
+	ssh data.SyncStatisticsHandler,
+	ctx context.Context,
+	shardId uint32,
+) error {
 	var errFound error
 	errMutex := sync.Mutex{}
 
@@ -124,7 +132,7 @@ func (u *userAccountsSyncer) syncAccountDataTries(rootHashes [][]byte, ssh data.
 		}
 
 		go func(trieRootHash []byte) {
-			newErr := u.syncDataTrie(trieRootHash, ssh, ctx)
+			newErr := u.syncDataTrie(trieRootHash, ssh, ctx, shardId)
 			if newErr != nil {
 				errMutex.Lock()
 				errFound = newErr
@@ -142,7 +150,12 @@ func (u *userAccountsSyncer) syncAccountDataTries(rootHashes [][]byte, ssh data.
 	return errFound
 }
 
-func (u *userAccountsSyncer) syncDataTrie(rootHash []byte, ssh data.SyncStatisticsHandler, ctx context.Context) error {
+func (u *userAccountsSyncer) syncDataTrie(
+	rootHash []byte,
+	ssh data.SyncStatisticsHandler,
+	ctx context.Context,
+	shardId uint32,
+) error {
 	u.throttler.StartProcessing()
 	defer u.throttler.EndProcessing()
 
@@ -175,6 +188,24 @@ func (u *userAccountsSyncer) syncDataTrie(rootHash []byte, ssh data.SyncStatisti
 	}
 
 	err = trieSyncer.StartSyncing(rootHash, ctx)
+	if err != nil {
+		return err
+	}
+
+	dataTrieIdentifier := genesis.CreateTrieIdentifier(shardId, genesis.DataTrie)
+	identifier := genesis.AddRootHashToIdentifier(dataTrieIdentifier, string(rootHash))
+
+	dataTrie, err := trie.NewTrie(u.trieStorageManager, u.marshalizer, u.hasher, u.maxTrieLevelInMemory)
+	if err != nil {
+		return err
+	}
+
+	exportDataTrie, err := dataTrie.Recreate(rootHash)
+	if err != nil {
+		return err
+	}
+
+	err = u.trieExporter.ExportDataTrie(identifier, exportDataTrie, ctx)
 	if err != nil {
 		return err
 	}

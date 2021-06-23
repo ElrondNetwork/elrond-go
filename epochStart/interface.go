@@ -116,7 +116,7 @@ type PendingMiniBlocksSyncHandler interface {
 
 // AccountsDBSyncer defines the methods for the accounts db syncer
 type AccountsDBSyncer interface {
-	SyncAccounts(rootHash []byte) error
+	SyncAccounts(rootHash []byte, shardId uint32) error
 	IsInterfaceNil() bool
 }
 

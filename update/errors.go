@@ -271,3 +271,9 @@ var ErrInvalidMaxHardCapForMissingNodes = errors.New("invalid max hardcap for mi
 
 // ErrInvalidNumConcurrentTrieSyncers signals that the number of concurrent trie syncers is invalid
 var ErrInvalidNumConcurrentTrieSyncers = errors.New("invalid num concurrent trie syncers")
+
+// ErrNilTrieExporter signals that nil trie exporter has been provided
+var ErrNilTrieExporter = errors.New("nil trie exporter")
+
+// ErrInvalidOwnShardId signals that an invalid own shard id has been provided
+var ErrInvalidOwnShardId = errors.New("invalid own shard id")

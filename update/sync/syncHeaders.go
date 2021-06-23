@@ -203,10 +203,12 @@ func (h *headersToSync) SyncUnFinishedMetaHeaders(epoch uint32) error {
 
 // SyncEpochStartMetaHeader syncs and validates an epoch start metaHeader
 func (h *headersToSync) syncEpochStartMetaHeader(epoch uint32, waitTime time.Duration) error {
+	log.Debug("headersToSync.syncEpochStartMetaHeader started") //TODO remove this
 	defer func() {
 		h.mutMeta.Lock()
 		h.stopSyncing = true
 		h.mutMeta.Unlock()
+		log.Debug("headersToSync.syncEpochStartMetaHeader ended") //TODO remove this
 	}()
 
 	h.epochToSync = epoch
@@ -259,10 +261,12 @@ func (h *headersToSync) syncEpochStartMetaHeader(epoch uint32, waitTime time.Dur
 }
 
 func (h *headersToSync) syncFirstPendingMetaBlocks(waitTime time.Duration) error {
+	log.Debug("headersToSync.syncFirstPendingMetaBlocks started") //TODO remove this
 	defer func() {
 		h.mutMeta.Lock()
 		h.stopSyncing = true
 		h.mutMeta.Unlock()
+		log.Debug("headersToSync.syncFirstPendingMetaBlocks ended") //TODO remove this
 	}()
 
 	h.mutMeta.Lock()
@@ -309,10 +313,12 @@ func (h *headersToSync) syncFirstPendingMetaBlocks(waitTime time.Duration) error
 }
 
 func (h *headersToSync) syncAllNeededMetaHeaders(waitTime time.Duration) error {
+	log.Debug("headersToSync.syncAllNeededMetaHeaders started") //TODO remove this
 	defer func() {
 		h.mutMeta.Lock()
 		h.stopSyncing = true
 		h.mutMeta.Unlock()
+		log.Debug("headersToSync.syncAllNeededMetaHeaders ended") //TODO remove this
 	}()
 
 	h.mutMeta.Lock()

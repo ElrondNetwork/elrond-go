@@ -16,6 +16,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/storage"
 	"github.com/ElrondNetwork/elrond-go/testscommon"
 	"github.com/ElrondNetwork/elrond-go/update"
+	"github.com/ElrondNetwork/elrond-go/update/genesis/trieExport"
 	"github.com/ElrondNetwork/elrond-go/update/mock"
 	"github.com/stretchr/testify/require"
 )
@@ -104,11 +105,15 @@ func createSyncTrieState(retErr bool) update.EpochStartTriesSyncHandler {
 		AccountsDBsSyncers: &mock.AccountsDBSyncersStub{
 			GetCalled: func(key string) (syncer update.AccountsDBSyncer, err error) {
 				return &mock.AccountsDBSyncerStub{
-					SyncAccountsCalled: func(rootHash []byte) error {
+					SyncAccountsCalled: func(rootHash []byte, _ uint32) error {
 						if retErr {
 							return errors.New("err")
 						}
 						return nil
+					},
+					GetTrieExporterCalled: func() update.TrieExporter {
+						trieExporter, _ := trieExport.NewInactiveTrieExporter(&mock.MarshalizerMock{})
+						return trieExporter
 					},
 				}, nil
 			},
@@ -164,7 +169,7 @@ func TestNewSyncState_Ok(t *testing.T) {
 	require.Nil(t, err)
 	require.False(t, ss.IsInterfaceNil())
 
-	err = ss.SyncAllState(1)
+	err = ss.SyncAllState(1, 0)
 	require.Nil(t, err)
 }
 
@@ -181,7 +186,7 @@ func TestNewSyncState_CannotSyncHeaderErr(t *testing.T) {
 	ss, err := NewSyncState(args)
 	require.Nil(t, err)
 
-	err = ss.SyncAllState(1)
+	err = ss.SyncAllState(1, 0)
 	require.NotNil(t, err)
 }
 
@@ -198,7 +203,7 @@ func TestNewSyncState_CannotSyncTriesErr(t *testing.T) {
 	ss, err := NewSyncState(args)
 	require.Nil(t, err)
 
-	err = ss.SyncAllState(1)
+	err = ss.SyncAllState(1, 0)
 	require.NotNil(t, err)
 }
 
@@ -227,7 +232,7 @@ func TestSyncState_SyncAllStatePendingMiniBlocksErr(t *testing.T) {
 	ss, err := NewSyncState(args)
 	require.Nil(t, err)
 
-	err = ss.SyncAllState(0)
+	err = ss.SyncAllState(0, 0)
 	require.True(t, errors.Is(err, localErr))
 }
 
@@ -256,7 +261,7 @@ func TestSyncState_SyncAllStateGetMiniBlocksErr(t *testing.T) {
 	ss, err := NewSyncState(args)
 	require.Nil(t, err)
 
-	err = ss.SyncAllState(0)
+	err = ss.SyncAllState(0, 0)
 	require.True(t, errors.Is(err, localErr))
 }
 
@@ -285,6 +290,6 @@ func TestSyncState_SyncAllStateSyncTxsErr(t *testing.T) {
 	ss, err := NewSyncState(args)
 	require.Nil(t, err)
 
-	err = ss.SyncAllState(0)
+	err = ss.SyncAllState(0, 0)
 	require.True(t, errors.Is(err, localErr))
 }

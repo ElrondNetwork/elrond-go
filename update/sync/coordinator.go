@@ -61,7 +61,7 @@ func NewSyncState(args ArgsNewSyncState) (*syncState, error) {
 }
 
 // SyncAllState gets an epoch number and will sync the complete data for that epoch start metablock
-func (ss *syncState) SyncAllState(epoch uint32) error {
+func (ss *syncState) SyncAllState(epoch uint32, ownShardId uint32) error {
 	ctxDisplay, cancelDisplay := context.WithCancel(context.Background())
 	go displayStatusMessage(fmt.Sprintf("syncing un-finished meta headers for epoch %d", epoch), ctxDisplay)
 	ss.syncingEpoch = epoch
@@ -98,7 +98,7 @@ func (ss *syncState) SyncAllState(epoch uint32) error {
 	mutErr := sync.Mutex{}
 
 	go func() {
-		errSync := ss.tries.SyncTriesFrom(meta)
+		errSync := ss.tries.SyncTriesFrom(meta, ownShardId)
 		if errSync != nil {
 			mutErr.Lock()
 			errFound = fmt.Errorf("%w in syncState.SyncAllState - SyncTriesFrom", errSync)
@@ -198,11 +198,6 @@ func (ss *syncState) GetEpochStartMetaBlock() (*block.MetaBlock, error) {
 // GetUnFinishedMetaBlocks returns the synced unFinished metablocks
 func (ss *syncState) GetUnFinishedMetaBlocks() (map[string]*block.MetaBlock, error) {
 	return ss.headers.GetUnFinishedMetaBlocks()
-}
-
-// GetAllTries returns the synced tries
-func (ss *syncState) GetAllTries() (map[string]data.Trie, error) {
-	return ss.tries.GetTries()
 }
 
 // GetAllTransactions returns the synced transactions
