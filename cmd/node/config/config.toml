@@ -12,13 +12,14 @@
    StartInEpochEnabled = true
 
    # ChainID identifies the blockChain
-   ChainID = "undefined"
+   ChainID = "1"
+
 
    # MinTransactionVersion represents the minimum transaction version accepted
    MinTransactionVersion = 1
 
    # GenesisString represents the encoded string for the genesis block
-   GenesisString = "67656E65736973"
+   GenesisString = "546f207369676e69666963616e746c7920616363656c657261746520616c6c20746563686e6f6c6f676965732c20616e64207261646963616c6c7920696d70726f766520736f63696574792c2068756d616e6974792077696c6c206861766520746f206d69677261746520746f206120706f737420736361726369747920776f726c642e20456c726f6e642069732074686520666972737420636f6d706c65746520736f6c7574696f6e20746861742077696c6c20617474656d707420616e64206163686965766520746869732e0a0a54686520666f756e64696e67207465616d206f6620456c726f6e642069733a0a42656e69616d696e204d696e63750a4c756369616e204d696e63750a4c756369616e20546f6465610a41647269616e20446f62726974610a526f6265727420536173750a5261647520436869730a49756c69616e2050617363616c61750a53656261737469616e204d617269616e0a416e64726569204d6172696e6963610a437269737469616e20436f72636f7665616e750a44616e20566f6963750a44616e69656c20536572620a0a4e6f7461626c6520636f6e7472696275746f72733a0a42656e69616d696e20447261736f7665616e0a46656c69782043726973616e0a436f6e7374616e74696e20546f766973690a43616d696c2042616e63696f69750a416e647265692042616e63696f69750a416e64726569204164616d0a5365766572204d6f6c646f7665616e"
 
    # GenesisMaxNumberOfShards represents the maximum number of shards to be created at genesis (excluding metaChain shard)
    GenesisMaxNumberOfShards  = 3
@@ -475,7 +476,7 @@
         Type = "LRU"
     [Antiflood.Topic]
         DefaultMaxMessagesPerSec = 15000
-        MaxMessages = [{ Topic = "heartbeat", NumMessagesPerSec = 30 },
+        MaxMessages = [{ Topic = "heartbeat", NumMessagesPerSec = 60 },
                        { Topic = "shardBlocks*", NumMessagesPerSec = 30 },
                        { Topic = "metachainBlocks", NumMessagesPerSec = 30 }]
     [Antiflood.WebServer]
@@ -542,15 +543,15 @@
    Type = "json"
 
 [EpochStartConfig]
-    MinRoundsBetweenEpochs = 20
-    RoundsPerEpoch         = 200
+    MinRoundsBetweenEpochs = 14400
+    RoundsPerEpoch         = 14400
     # Min and Max ShuffledOutRestartThreshold represents the minimum and maximum duration of an epoch (in percentage) after a node which
     # has been shuffled out has to restart its process in order to start in a new shard
-    MinShuffledOutRestartThreshold = 0.05
-    MaxShuffledOutRestartThreshold = 0.25
+    MinShuffledOutRestartThreshold = 0.01
+    MaxShuffledOutRestartThreshold = 0.05
 
-    MinNumConnectedPeersToStart       = 2
-    MinNumOfPeersToConsiderBlockValid = 2
+    MinNumConnectedPeersToStart       = 6
+    MinNumOfPeersToConsiderBlockValid = 6
 
 # ResourceStats, if enabled, will output in a folder called "stats"
 # resource statistics. For example: number of active go routines, memory allocation, number of GC sweeps, etc.
@@ -562,11 +563,11 @@
 # Heartbeat, if enabled, will output a heartbeat signal once x seconds,
 # where x in [MinTimeToWaitBetweenBroadcastsInSec, MaxTimeToWaitBetweenBroadcastsInSec)
 [Heartbeat]
-   MinTimeToWaitBetweenBroadcastsInSec  = 20
-   MaxTimeToWaitBetweenBroadcastsInSec  = 25
+   MinTimeToWaitBetweenBroadcastsInSec  = 50
+   MaxTimeToWaitBetweenBroadcastsInSec  = 70
    HeartbeatRefreshIntervalInSec        = 60
-   HideInactiveValidatorIntervalInSec   = 3600
-   DurationToConsiderUnresponsiveInSec  = 60
+   HideInactiveValidatorIntervalInSec   = 600
+   DurationToConsiderUnresponsiveInSec  = 300
    [Heartbeat.HeartbeatStorage]
        [Heartbeat.HeartbeatStorage.Cache]
             Name = "HeartbeatStorage"
@@ -611,30 +612,30 @@
     [VirtualMachine.Execution]
         ArwenVersions = [
             { StartEpoch = 0, Version = "v1.2" },
-            { StartEpoch = 1, Version = "v1.3" },
+            { StartEpoch = 326, Version = "v1.3" },
         ]
 
     [VirtualMachine.Querying]
         NumConcurrentVMs = 1
         ArwenVersions = [
             { StartEpoch = 0, Version = "v1.2" },
-            { StartEpoch = 1, Version = "v1.3" },
+            { StartEpoch = 326, Version = "v1.3" },
         ]
 
 [Hardfork]
     EnableTrigger = true
     EnableTriggerFromP2P = true
-    PublicKeyToListenFrom = "153dae6cb3963260f309959bf285537b77ae16d82e9933147be7827f7394de8dc97d9d9af41e970bc72aecb44b77e819621081658c37f7000d21e2d0e8963df83233407bde9f46369ba4fcd03b57f40b80b06c191a428cfb5c447ec510e79307"
-    CloseAfterExportInMinutes = 10000
-    AfterHardFork = false
-    ImportFolder = "export"
-    StartRound = 10000
-    StartNonce = 10000
-    StartEpoch = 100
-    GenesisTime = 0
-    ValidatorGracePeriodInEpochs = 1 #defines how long is the rating computation disabled after hardfork
-    [Hardfork.ExportStateStorageConfig]
-        [Hardfork.ExportStateStorageConfig.Cache]
+    PublicKeyToListenFrom = "6a02b93375e78aed4e0e3369ef2182dfc060eea01df640eacc5eca5f759f62c8271fbbf90863e896e2453384118be20179433cb1dfc1bd8df962c80f3da94ea42dffaf70025b6fd6a5b4814bc4b15cf6751c990fe21d392f1bc88c15bd354a8c"
+	CloseAfterExportInMinutes = 10000
+	AfterHardFork = false
+	ImportFolder = "export"
+	StartRound = 10000
+	StartNonce = 10000
+	StartEpoch = 100
+	GenesisTime = 0
+	ValidatorGracePeriodInEpochs = 1 #defines how long is the rating computation disabled after hardfork
+	[Hardfork.ExportStateStorageConfig]
+	    [Hardfork.ExportStateStorageConfig.Cache]
             Name = "HardFork.ExportStateStorageConfig"
             Capacity = 5000
             Type = "LRU"
@@ -666,8 +667,8 @@
             BatchDelaySeconds = 2
             MaxBatchSize = 1000
             MaxOpenFiles = 10
-    [Hardfork.ImportStateStorageConfig]
-        [Hardfork.ImportStateStorageConfig.Cache]
+	[Hardfork.ImportStateStorageConfig]
+	    [Hardfork.ImportStateStorageConfig.Cache]
             Name = "HardFork.ImportStateStorageConfig"
             Capacity = 5000
             Type = "LRU"
@@ -677,8 +678,8 @@
             BatchDelaySeconds = 2
             MaxBatchSize = 1000
             MaxOpenFiles = 10
-    [Hardfork.ImportKeysStorageConfig]
-        [Hardfork.ImportKeysStorageConfig.Cache]
+	[Hardfork.ImportKeysStorageConfig]
+	    [Hardfork.ImportKeysStorageConfig.Cache]
             Name = "HardFork.ImportKeysStorageConfig"
             Capacity = 5000
             Type = "LRU"
@@ -691,9 +692,9 @@
 
 [Debug]
     [Debug.InterceptorResolver]
-        Enabled = true
+        Enabled = false
         CacheSize = 10000
-        EnablePrint = true
+        EnablePrint	= false
         IntervalAutoPrintInSeconds = 20
         NumRequestsThreshold = 9
         NumResolveFailureThreshold = 3
@@ -716,7 +717,7 @@
     FolderPath = "health-records"
 
 [SoftwareVersionConfig]
-    StableTagLocation = "https://api.github.com/repos/ElrondNetwork/elrond-go/releases/latest"
+    StableTagLocation = "https://api.github.com/repos/ElrondNetwork/elrond-config-mainnet/releases/latest"
     PollingIntervalInMinutes = 65
 
 [DbLookupExtensions]

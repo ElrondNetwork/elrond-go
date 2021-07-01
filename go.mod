@@ -50,3 +50,5 @@ require (
 replace github.com/gogo/protobuf => github.com/ElrondNetwork/protobuf v1.3.2
 
 replace github.com/ElrondNetwork/arwen-wasm-vm/v1_3 v1.3.19 => github.com/ElrondNetwork/arwen-wasm-vm v1.3.19
+
+replace github.com/ElrondNetwork/elastic-indexer-go => github.com/ElrondNetwork/elastic-indexer-go v1.0.6-0.20210628101121-ddae861ac394
