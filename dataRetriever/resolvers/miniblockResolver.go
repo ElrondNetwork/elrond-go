@@ -32,7 +32,7 @@ type ArgMiniblockResolver struct {
 // miniblockResolver is a wrapper over Resolver that is specialized in resolving miniblocks requests
 // TODO extract common functionality between this and transactionResolver
 type miniblockResolver struct {
-	dataRetriever.TopicResolverSender
+	*baseResolver
 	messageProcessor
 	baseStorageResolver
 	miniBlockPool storage.Cacher
@@ -64,7 +64,9 @@ func NewMiniblockResolver(arg ArgMiniblockResolver) (*miniblockResolver, error) 
 	}
 
 	mbResolver := &miniblockResolver{
-		TopicResolverSender: arg.SenderResolver,
+		baseResolver: &baseResolver{
+			TopicResolverSender: arg.SenderResolver,
+		},
 		miniBlockPool:       arg.MiniBlockPool,
 		baseStorageResolver: createBaseStorageResolver(arg.MiniBlockStorage, arg.IsFullHistoryNode),
 		dataPacker:          arg.DataPacker,
@@ -225,26 +227,6 @@ func (mbRes *miniblockResolver) RequestDataFromHashArray(hashes [][]byte, epoch 
 		},
 		hashes,
 	)
-}
-
-// SetNumPeersToQuery will set the number of intra shard and cross shard number of peer to query
-func (mbRes *miniblockResolver) SetNumPeersToQuery(intra int, cross int) {
-	mbRes.TopicResolverSender.SetNumPeersToQuery(intra, cross)
-}
-
-// NumPeersToQuery will return the number of intra shard and cross shard number of peer to query
-func (mbRes *miniblockResolver) NumPeersToQuery() (int, int) {
-	return mbRes.TopicResolverSender.NumPeersToQuery()
-}
-
-// SetResolverDebugHandler will set a resolver debug handler
-func (mbRes *miniblockResolver) SetResolverDebugHandler(handler dataRetriever.ResolverDebugHandler) error {
-	return mbRes.TopicResolverSender.SetResolverDebugHandler(handler)
-}
-
-// Close returns nil
-func (mbRes *miniblockResolver) Close() error {
-	return nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

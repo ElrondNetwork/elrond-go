@@ -1129,3 +1129,22 @@ type CurrentNetworkEpochProviderHandler interface {
 	EpochIsActiveInNetwork(epoch uint32) bool
 	IsInterfaceNil() bool
 }
+
+// ValidatorChecker is able to tell if the publicKey byte slice is or not a validator
+type ValidatorChecker interface {
+	GetValidatorWithPublicKey(publicKey []byte) (sharding.Validator, uint32, error)
+	IsInterfaceNil() bool
+}
+
+// InterceptedPeerAuthentication defines an intercepted peer authentication implementation
+type InterceptedPeerAuthentication interface {
+	InterceptedData
+	PublicKey() []byte
+	SetComputedShardID(shardId uint32)
+}
+
+// PeerAuthenticationProcessor is able to process and check the provided intercepted peer authentication instance
+type PeerAuthenticationProcessor interface {
+	Process(peerAuthentication InterceptedPeerAuthentication) error
+	IsInterfaceNil() bool
+}

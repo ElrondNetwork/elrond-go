@@ -973,3 +973,22 @@ var ErrNilAccountsDBSyncer = errors.New("nil accounts DB syncer")
 
 // ErrNilCurrentNetworkEpochProvider signals that a nil CurrentNetworkEpochProvider handler has been provided
 var ErrNilCurrentNetworkEpochProvider = errors.New("nil current network epoch provider")
+
+// ErrNilValidatorChecker signals that a nil validator checker has been provided
+var ErrNilValidatorChecker = errors.New("nil validator checker")
+
+// ErrNilAuthenticationProcessor signals that a nil authentication processor has been provided
+var ErrNilAuthenticationProcessor = errors.New("nil authentication processor")
+
+// ErrPropertyTooLong signals that a heartbeat property was too long
+var ErrPropertyTooLong = errors.New("property too long")
+
+// ErrPropertyTooShort signals that a heartbeat property was too short
+var ErrPropertyTooShort = errors.New("property too short")
+
+// ErrNilPeerSignatureHandler signals that a nil peerSignatureHandler object has been provided
+var ErrNilPeerSignatureHandler = errors.New("trying to set nil peerSignatureHandler")
+
+// ErrShouldNotBroadcastMessage signals (to the network messenger) that the current received message contains data
+// formatted in such a way that it should not be broadcast to other peers
+var ErrShouldNotBroadcastMessage = errors.New("should not broadcast message")

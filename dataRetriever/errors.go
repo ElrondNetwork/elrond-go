@@ -217,3 +217,9 @@ var ErrNilTrieStorageManager = errors.New("nil trie storage manager")
 
 // ErrNilPathManager signals that a nil path manager has been provided
 var ErrNilPathManager = errors.New("nil path manager")
+
+// ErrNilPeerAuthenticationPool signals that a nil peer authentication pool has been provided
+var ErrNilPeerAuthenticationPool = errors.New("nil peer authentication pool")
+
+// ErrNotFound signals that a data is missing
+var ErrNotFound = errors.New("data not found")

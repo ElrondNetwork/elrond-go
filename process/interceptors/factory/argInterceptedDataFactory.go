@@ -51,4 +51,5 @@ type ArgInterceptedDataFactory struct {
 	EpochStartTrigger         process.EpochStartTriggerHandler
 	ArgsParser                process.ArgumentsParser
 	EnableSignTxWithHashEpoch uint32
+	PeerSignatureHandler      crypto.PeerSignatureHandler
 }

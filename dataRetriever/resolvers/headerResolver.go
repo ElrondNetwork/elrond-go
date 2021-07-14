@@ -34,7 +34,7 @@ type ArgHeaderResolver struct {
 // HeaderResolver is a wrapper over Resolver that is specialized in resolving headers requests
 type HeaderResolver struct {
 	baseStorageResolver
-	dataRetriever.TopicResolverSender
+	*baseResolver
 	messageProcessor
 	headers          dataRetriever.HeadersPool
 	hdrNoncesStorage storage.Storer
@@ -75,7 +75,9 @@ func NewHeaderResolver(arg ArgHeaderResolver) (*HeaderResolver, error) {
 
 	epochHandler := disabled.NewEpochHandler()
 	hdrResolver := &HeaderResolver{
-		TopicResolverSender: arg.SenderResolver,
+		baseResolver: &baseResolver{
+			TopicResolverSender: arg.SenderResolver,
+		},
 		headers:             arg.Headers,
 		baseStorageResolver: createBaseStorageResolver(arg.HdrStorage, arg.IsFullHistoryNode),
 		hdrNoncesStorage:    arg.HeadersNoncesStorage,
@@ -262,26 +264,6 @@ func (hdrRes *HeaderResolver) RequestDataFromEpoch(identifier []byte) error {
 		},
 		[][]byte{identifier},
 	)
-}
-
-// SetNumPeersToQuery will set the number of intra shard and cross shard number of peer to query
-func (hdrRes *HeaderResolver) SetNumPeersToQuery(intra int, cross int) {
-	hdrRes.TopicResolverSender.SetNumPeersToQuery(intra, cross)
-}
-
-// NumPeersToQuery will return the number of intra shard and cross shard number of peer to query
-func (hdrRes *HeaderResolver) NumPeersToQuery() (int, int) {
-	return hdrRes.TopicResolverSender.NumPeersToQuery()
-}
-
-// SetResolverDebugHandler will set a resolver debug handler
-func (hdrRes *HeaderResolver) SetResolverDebugHandler(handler dataRetriever.ResolverDebugHandler) error {
-	return hdrRes.TopicResolverSender.SetResolverDebugHandler(handler)
-}
-
-// Close returns nil
-func (hdrRes *HeaderResolver) Close() error {
-	return nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

@@ -57,6 +57,16 @@ func createMockThrottler() *mock.InterceptorThrottlerStub {
 	}
 }
 
+// checkThrottlerNumStartEndCalls will check if the correct number of start and end calls were done upon a throttler
+// calling this method is encouraged to be done in tests involving interceptors as to minimize the risk of having bugs
+// when considering throttling p2p messages
+func checkThrottlerNumStartEndCalls(t *testing.T, throttler process.InterceptorThrottler, numCalls int32) {
+	mockThrottler, isMockThrottler := throttler.(*mock.InterceptorThrottlerStub)
+	require.True(t, isMockThrottler)
+	require.Equal(t, numCalls, mockThrottler.EndProcessingCount())
+	require.Equal(t, numCalls, mockThrottler.StartProcessingCount())
+}
+
 func TestNewSingleDataInterceptor_EmptyTopicShouldErr(t *testing.T) {
 	t.Parallel()
 
@@ -167,6 +177,7 @@ func TestSingleDataInterceptor_ProcessReceivedMessageNilMessageShouldErr(t *test
 	err := sdi.ProcessReceivedMessage(nil, fromConnectedPeerId)
 
 	assert.Equal(t, process.ErrNilMessage, err)
+	checkThrottlerNumStartEndCalls(t, arg.Throttler, 0)
 }
 
 func TestSingleDataInterceptor_ProcessReceivedMessageFactoryCreationErrorShouldErr(t *testing.T) {
@@ -203,6 +214,7 @@ func TestSingleDataInterceptor_ProcessReceivedMessageFactoryCreationErrorShouldE
 	assert.Equal(t, errExpected, err)
 	assert.True(t, originatorBlackListed)
 	assert.True(t, fromConnectedPeerBlackListed)
+	checkThrottlerNumStartEndCalls(t, arg.Throttler, 1)
 }
 
 func TestSingleDataInterceptor_ProcessReceivedMessageIsNotValidShouldNotCallProcess(t *testing.T) {
@@ -257,8 +269,7 @@ func testProcessReceiveMessage(t *testing.T, isForCurrentShard bool, validityErr
 	assert.Equal(t, validityErr, err)
 	assert.Equal(t, int32(calledNum), atomic.LoadInt32(&checkCalledNum))
 	assert.Equal(t, int32(calledNum), atomic.LoadInt32(&processCalledNum))
-	assert.Equal(t, int32(1), throttler.EndProcessingCount())
-	assert.Equal(t, int32(1), throttler.EndProcessingCount())
+	checkThrottlerNumStartEndCalls(t, arg.Throttler, 1)
 }
 
 func TestSingleDataInterceptor_ProcessReceivedMessageWhitelistedShouldWork(t *testing.T) {
@@ -301,8 +312,7 @@ func TestSingleDataInterceptor_ProcessReceivedMessageWhitelistedShouldWork(t *te
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), atomic.LoadInt32(&checkCalledNum))
 	assert.Equal(t, int32(1), atomic.LoadInt32(&processCalledNum))
-	assert.Equal(t, int32(1), throttler.EndProcessingCount())
-	assert.Equal(t, int32(1), throttler.EndProcessingCount())
+	checkThrottlerNumStartEndCalls(t, arg.Throttler, 1)
 }
 
 func TestSingleDataInterceptor_InvalidTxVersionShouldBlackList(t *testing.T) {
@@ -366,6 +376,7 @@ func processReceivedMessageSingleDataInvalidVersion(t *testing.T, expectedErr er
 	assert.Equal(t, expectedErr, err)
 	assert.True(t, isFromConnectedPeerBlackListed)
 	assert.True(t, isOriginatorBlackListed)
+	checkThrottlerNumStartEndCalls(t, arg.Throttler, 1)
 }
 
 func TestSingleDataInterceptor_ProcessReceivedMessageWithOriginator(t *testing.T) {

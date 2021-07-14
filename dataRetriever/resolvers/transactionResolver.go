@@ -37,7 +37,7 @@ type ArgTxResolver struct {
 
 // TxResolver is a wrapper over Resolver that is specialized in resolving transaction requests
 type TxResolver struct {
-	dataRetriever.TopicResolverSender
+	*baseResolver
 	messageProcessor
 	baseStorageResolver
 	txPool     dataRetriever.ShardedDataCacherNotifier
@@ -69,7 +69,9 @@ func NewTxResolver(arg ArgTxResolver) (*TxResolver, error) {
 	}
 
 	txResolver := &TxResolver{
-		TopicResolverSender: arg.SenderResolver,
+		baseResolver: &baseResolver{
+			TopicResolverSender: arg.SenderResolver,
+		},
 		txPool:              arg.TxPool,
 		baseStorageResolver: createBaseStorageResolver(arg.TxStorage, arg.IsFullHistoryNode),
 		dataPacker:          arg.DataPacker,
@@ -233,26 +235,6 @@ func (txRes *TxResolver) RequestDataFromHashArray(hashes [][]byte, epoch uint32)
 		},
 		hashes,
 	)
-}
-
-// SetNumPeersToQuery will set the number of intra shard and cross shard number of peer to query
-func (txRes *TxResolver) SetNumPeersToQuery(intra int, cross int) {
-	txRes.TopicResolverSender.SetNumPeersToQuery(intra, cross)
-}
-
-// NumPeersToQuery will return the number of intra shard and cross shard number of peer to query
-func (txRes *TxResolver) NumPeersToQuery() (int, int) {
-	return txRes.TopicResolverSender.NumPeersToQuery()
-}
-
-// SetResolverDebugHandler will set a resolver debug handler
-func (txRes *TxResolver) SetResolverDebugHandler(handler dataRetriever.ResolverDebugHandler) error {
-	return txRes.TopicResolverSender.SetResolverDebugHandler(handler)
-}
-
-// Close returns nil
-func (txRes *TxResolver) Close() error {
-	return nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

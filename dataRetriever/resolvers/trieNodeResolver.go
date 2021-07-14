@@ -22,7 +22,7 @@ type ArgTrieNodeResolver struct {
 
 // TrieNodeResolver is a wrapper over Resolver that is specialized in resolving trie node requests
 type TrieNodeResolver struct {
-	dataRetriever.TopicResolverSender
+	*baseResolver
 	messageProcessor
 	trieDataGetter dataRetriever.TrieDataGetter
 }
@@ -46,8 +46,10 @@ func NewTrieNodeResolver(arg ArgTrieNodeResolver) (*TrieNodeResolver, error) {
 	}
 
 	return &TrieNodeResolver{
-		TopicResolverSender: arg.SenderResolver,
-		trieDataGetter:      arg.TrieDataGetter,
+		baseResolver: &baseResolver{
+			TopicResolverSender: arg.SenderResolver,
+		},
+		trieDataGetter: arg.TrieDataGetter,
 		messageProcessor: messageProcessor{
 			marshalizer:      arg.Marshalizer,
 			antifloodHandler: arg.AntifloodHandler,
@@ -290,26 +292,6 @@ func (tnRes *TrieNodeResolver) RequestDataFromReferenceAndChunk(hash []byte, chu
 		},
 		[][]byte{hash},
 	)
-}
-
-// SetNumPeersToQuery will set the number of intra shard and cross shard number of peer to query
-func (tnRes *TrieNodeResolver) SetNumPeersToQuery(intra int, cross int) {
-	tnRes.TopicResolverSender.SetNumPeersToQuery(intra, cross)
-}
-
-// NumPeersToQuery will return the number of intra shard and cross shard number of peer to query
-func (tnRes *TrieNodeResolver) NumPeersToQuery() (int, int) {
-	return tnRes.TopicResolverSender.NumPeersToQuery()
-}
-
-// SetResolverDebugHandler will set a resolver debug handler
-func (tnRes *TrieNodeResolver) SetResolverDebugHandler(handler dataRetriever.ResolverDebugHandler) error {
-	return tnRes.TopicResolverSender.SetResolverDebugHandler(handler)
-}
-
-// Close returns nil
-func (tnRes *TrieNodeResolver) Close() error {
-	return nil
 }
 
 // IsInterfaceNil returns true if there is no value under the interface

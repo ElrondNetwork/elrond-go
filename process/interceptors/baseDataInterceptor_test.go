@@ -37,26 +37,26 @@ func newBaseDataInterceptorForProcess(processor process.InterceptorProcessor, de
 	}
 }
 
-func TestPreProcessMessage_NilMessageShouldErr(t *testing.T) {
+func TestCheckMessage_NilMessageShouldErr(t *testing.T) {
 	t.Parallel()
 
 	bdi := newBaseDataInterceptorForPreProcess(&mock.InterceptorThrottlerStub{}, &mock.P2PAntifloodHandlerStub{}, &p2pmocks.PeersHolderStub{})
-	err := bdi.preProcessMesage(nil, fromConnectedPeer)
+	err := bdi.checkMessage(nil, fromConnectedPeer)
 
 	assert.Equal(t, process.ErrNilMessage, err)
 }
 
-func TestPreProcessMessage_NilDataShouldErr(t *testing.T) {
+func TestCheckMessage_NilDataShouldErr(t *testing.T) {
 	t.Parallel()
 
 	msg := &mock.P2PMessageMock{}
 	bdi := newBaseDataInterceptorForPreProcess(&mock.InterceptorThrottlerStub{}, &mock.P2PAntifloodHandlerStub{}, &p2pmocks.PeersHolderStub{})
-	err := bdi.preProcessMesage(msg, fromConnectedPeer)
+	err := bdi.checkMessage(msg, fromConnectedPeer)
 
 	assert.Equal(t, process.ErrNilDataToProcess, err)
 }
 
-func TestPreProcessMessage_AntifloodCanNotProcessShouldErr(t *testing.T) {
+func TestCheckMessage_AntifloodCanNotProcessShouldErr(t *testing.T) {
 	t.Parallel()
 
 	msg := &mock.P2PMessageMock{
@@ -75,7 +75,7 @@ func TestPreProcessMessage_AntifloodCanNotProcessShouldErr(t *testing.T) {
 	}
 
 	bdi := newBaseDataInterceptorForPreProcess(throttler, antifloodHandler, &p2pmocks.PeersHolderStub{})
-	err := bdi.preProcessMesage(msg, fromConnectedPeer)
+	err := bdi.checkMessage(msg, fromConnectedPeer)
 
 	assert.Equal(t, expectedErr, err)
 }
@@ -99,12 +99,12 @@ func TestPreProcessMessage_AntifloodTopicCanNotProcessShouldErr(t *testing.T) {
 	}
 
 	bdi := newBaseDataInterceptorForPreProcess(throttler, antifloodHandler, &p2pmocks.PeersHolderStub{})
-	err := bdi.preProcessMesage(msg, fromConnectedPeer)
+	err := bdi.checkMessage(msg, fromConnectedPeer)
 
 	assert.Equal(t, expectedErr, err)
 }
 
-func TestPreProcessMessage_ThrottlerCanNotProcessShouldErr(t *testing.T) {
+func TestCheckMessage_ThrottlerCanNotProcessShouldErr(t *testing.T) {
 	t.Parallel()
 
 	msg := &mock.P2PMessageMock{
@@ -118,12 +118,12 @@ func TestPreProcessMessage_ThrottlerCanNotProcessShouldErr(t *testing.T) {
 	antifloodHandler := &mock.P2PAntifloodHandlerStub{}
 
 	bdi := newBaseDataInterceptorForPreProcess(throttler, antifloodHandler, &p2pmocks.PeersHolderStub{})
-	err := bdi.preProcessMesage(msg, fromConnectedPeer)
+	err := bdi.checkMessage(msg, fromConnectedPeer)
 
 	assert.Equal(t, process.ErrSystemBusy, err)
 }
 
-func TestPreProcessMessage_CanProcessReturnsNilAndCallsStartProcessing(t *testing.T) {
+func TestCheckMessage_CanProcessReturnsNilAndCallsStartProcessing(t *testing.T) {
 	t.Parallel()
 
 	msg := &mock.P2PMessageMock{
@@ -135,13 +135,13 @@ func TestPreProcessMessage_CanProcessReturnsNilAndCallsStartProcessing(t *testin
 		},
 	}
 	bdi := newBaseDataInterceptorForPreProcess(throttler, &mock.P2PAntifloodHandlerStub{}, &p2pmocks.PeersHolderStub{})
-	err := bdi.preProcessMesage(msg, fromConnectedPeer)
+	err := bdi.checkMessage(msg, fromConnectedPeer)
 
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), throttler.StartProcessingCount())
 }
 
-func TestPreProcessMessage_CanProcessFromSelf(t *testing.T) {
+func TestCheckMessage_CanProcessFromSelf(t *testing.T) {
 	t.Parallel()
 
 	currentPeerID := core.PeerID("current peer ID")
@@ -169,7 +169,7 @@ func TestPreProcessMessage_CanProcessFromSelf(t *testing.T) {
 	}
 	bdi := newBaseDataInterceptorForPreProcess(throttler, antifloodHandler, &p2pmocks.PeersHolderStub{})
 	bdi.currentPeerId = currentPeerID
-	err := bdi.preProcessMesage(msg, currentPeerID)
+	err := bdi.checkMessage(msg, currentPeerID)
 
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), throttler.StartProcessingCount())
@@ -208,7 +208,7 @@ func TestPreProcessMessage_CanProcessFromPreferredPeer(t *testing.T) {
 	}
 	bdi := newBaseDataInterceptorForPreProcess(throttler, antifloodHandler, peersHolderStub)
 	bdi.currentPeerId = "new peer ID"
-	err := bdi.preProcessMesage(msg, "new peer id")
+	err := bdi.checkMessage(msg, "new peer id")
 
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), throttler.StartProcessingCount())

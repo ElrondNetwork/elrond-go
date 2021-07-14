@@ -93,6 +93,7 @@ func createMockArgument(
 		EpochStartTrigger:       &mock.EpochStartTriggerStub{},
 		WhiteListerVerifiedTxs:  &testscommon.WhiteListHandlerStub{},
 		ArgsParser:              &mock.ArgumentParserMock{},
+		PeerSignatureHandler:    &mock.PeerSignatureHandlerStub{},
 	}
 }
 

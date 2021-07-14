@@ -5,6 +5,7 @@ package proto;
 option go_package = "data";
 
 // Heartbeat represents the heartbeat message that is sent between peers
+// TODO(heartbeat): remove this message after phasing out the old implementation
 message Heartbeat {
     bytes   Payload         = 1 ;
     bytes   Pubkey          = 2 ;
@@ -19,6 +20,7 @@ message Heartbeat {
 }
 
 // HeartbeatDTO is the struct used for handling DB operations for heartbeatMessageInfo struct
+// TODO(heartbeat): remove this message after phasing out the old implementation
 message HeartbeatDTO {
     int64   MaxDurationPeerUnresponsive  = 1 ;
     int64   MaxInactiveTime              = 2 ;
@@ -41,6 +43,7 @@ message HeartbeatDTO {
     string  PidString                    = 19;
 }
 
+// TODO(heartbeat): remove this message after phasing out the old implementation
 message DbTimeStamp {
     int64   Timestamp = 1;
 }

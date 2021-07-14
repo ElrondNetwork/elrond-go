@@ -23,52 +23,60 @@ type ArgSingleDataInterceptor struct {
 // SingleDataInterceptor is used for intercepting packed multi data
 type SingleDataInterceptor struct {
 	*baseDataInterceptor
-	factory          process.InterceptedDataFactory
 	whiteListRequest process.WhiteListHandler
 }
 
 // NewSingleDataInterceptor hooks a new interceptor for single data
 func NewSingleDataInterceptor(arg ArgSingleDataInterceptor) (*SingleDataInterceptor, error) {
-	if len(arg.Topic) == 0 {
-		return nil, process.ErrEmptyTopic
-	}
-	if check.IfNil(arg.DataFactory) {
-		return nil, process.ErrNilInterceptedDataFactory
+	err := checkArguments(arg)
+	if err != nil {
+		return nil, err
 	}
 	if check.IfNil(arg.Processor) {
 		return nil, process.ErrNilInterceptedDataProcessor
 	}
-	if check.IfNil(arg.Throttler) {
-		return nil, process.ErrNilInterceptorThrottler
-	}
-	if check.IfNil(arg.AntifloodHandler) {
-		return nil, process.ErrNilAntifloodHandler
-	}
-	if check.IfNil(arg.WhiteListRequest) {
-		return nil, process.ErrNilWhiteListHandler
-	}
-	if check.IfNil(arg.PreferredPeersHolder) {
-		return nil, process.ErrNilPreferredPeersHolder
-	}
-	if len(arg.CurrentPeerId) == 0 {
-		return nil, process.ErrEmptyPeerID
-	}
 
-	singleDataIntercept := &SingleDataInterceptor{
+	interceptor := &SingleDataInterceptor{
 		baseDataInterceptor: &baseDataInterceptor{
 			throttler:            arg.Throttler,
 			antifloodHandler:     arg.AntifloodHandler,
 			topic:                arg.Topic,
 			currentPeerId:        arg.CurrentPeerId,
 			processor:            arg.Processor,
-			preferredPeersHolder: arg.PreferredPeersHolder,
 			debugHandler:         resolver.NewDisabledInterceptorResolver(),
+			preferredPeersHolder: arg.PreferredPeersHolder,
+			factory:              arg.DataFactory,
 		},
-		factory:          arg.DataFactory,
 		whiteListRequest: arg.WhiteListRequest,
 	}
 
-	return singleDataIntercept, nil
+	return interceptor, nil
+}
+
+func checkArguments(arg ArgSingleDataInterceptor) error {
+	if len(arg.Topic) == 0 {
+		return process.ErrEmptyTopic
+	}
+	if check.IfNil(arg.DataFactory) {
+		return process.ErrNilInterceptedDataFactory
+	}
+	if check.IfNil(arg.Throttler) {
+		return process.ErrNilInterceptorThrottler
+	}
+	if check.IfNil(arg.AntifloodHandler) {
+		return process.ErrNilAntifloodHandler
+	}
+	if check.IfNil(arg.WhiteListRequest) {
+		return process.ErrNilWhiteListHandler
+	}
+	if len(arg.CurrentPeerId) == 0 {
+		return process.ErrEmptyPeerID
+	}
+	if check.IfNil(arg.PreferredPeersHolder) {
+		return process.ErrNilPreferredPeersHolder
+	}
+
+	return nil
 }
 
 // ProcessReceivedMessage is the callback func from the p2p.Messenger and will be called each time a new message was received
@@ -77,37 +85,14 @@ func (sdi *SingleDataInterceptor) ProcessReceivedMessage(message p2p.MessageP2P,
 	sdi.mutDebugHandler.RLock()
 	defer sdi.mutDebugHandler.RUnlock()
 
-	err := sdi.preProcessMesage(message, fromConnectedPeer)
+	err := sdi.checkMessage(message, fromConnectedPeer)
 	if err != nil {
 		return err
 	}
 
-	interceptedData, err := sdi.factory.Create(message.Data())
+	interceptedData, err := sdi.interceptedData(message.Data(), message.Peer(), fromConnectedPeer)
 	if err != nil {
 		sdi.throttler.EndProcessing()
-
-		//this situation is so severe that we need to black list the peers
-		reason := "can not create object from received bytes, topic " + sdi.topic + ", error " + err.Error()
-		sdi.antifloodHandler.BlacklistPeer(message.Peer(), reason, core.InvalidMessageBlacklistDuration)
-		sdi.antifloodHandler.BlacklistPeer(fromConnectedPeer, reason, core.InvalidMessageBlacklistDuration)
-
-		return err
-	}
-
-	sdi.receivedDebugInterceptedData(interceptedData)
-
-	err = interceptedData.CheckValidity()
-	if err != nil {
-		sdi.throttler.EndProcessing()
-		sdi.processDebugInterceptedData(interceptedData, err)
-
-		isWrongVersion := err == process.ErrInvalidTransactionVersion || err == process.ErrInvalidChainID
-		if isWrongVersion {
-			//this situation is so severe that we need to black list de peers
-			reason := "wrong version of received intercepted data, topic " + sdi.topic + ", error " + err.Error()
-			sdi.antifloodHandler.BlacklistPeer(message.Peer(), reason, core.InvalidMessageBlacklistDuration)
-			sdi.antifloodHandler.BlacklistPeer(fromConnectedPeer, reason, core.InvalidMessageBlacklistDuration)
-		}
 
 		return err
 	}
@@ -144,11 +129,6 @@ func (sdi *SingleDataInterceptor) ProcessReceivedMessage(message p2p.MessageP2P,
 	}()
 
 	return nil
-}
-
-// RegisterHandler registers a callback function to be notified on received data
-func (sdi *SingleDataInterceptor) RegisterHandler(handler func(topic string, hash []byte, data interface{})) {
-	sdi.processor.RegisterHandler(handler)
 }
 
 // Close returns nil

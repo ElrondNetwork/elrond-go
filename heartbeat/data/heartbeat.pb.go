@@ -26,6 +26,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Heartbeat represents the heartbeat message that is sent between peers
+// TODO(heartbeat): remove this message after phasing out the old implementation
 type Heartbeat struct {
 	Payload         []byte `protobuf:"bytes,1,opt,name=Payload,proto3" json:"Payload,omitempty"`
 	Pubkey          []byte `protobuf:"bytes,2,opt,name=Pubkey,proto3" json:"Pubkey,omitempty"`
@@ -142,6 +143,7 @@ func (m *Heartbeat) GetPeerSubType() uint32 {
 }
 
 // HeartbeatDTO is the struct used for handling DB operations for heartbeatMessageInfo struct
+// TODO(heartbeat): remove this message after phasing out the old implementation
 type HeartbeatDTO struct {
 	MaxDurationPeerUnresponsive int64  `protobuf:"varint,1,opt,name=MaxDurationPeerUnresponsive,proto3" json:"MaxDurationPeerUnresponsive,omitempty"`
 	MaxInactiveTime             int64  `protobuf:"varint,2,opt,name=MaxInactiveTime,proto3" json:"MaxInactiveTime,omitempty"`
@@ -329,6 +331,7 @@ func (m *HeartbeatDTO) GetPidString() string {
 	return ""
 }
 
+// TODO(heartbeat): remove this message after phasing out the old implementation
 type DbTimeStamp struct {
 	Timestamp int64 `protobuf:"varint,1,opt,name=Timestamp,proto3" json:"Timestamp,omitempty"`
 }

@@ -10,15 +10,17 @@ import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 // RequestDataType represents the data type for the requested data
 enum RequestDataType {
 	// Invalid
-	InvalidType    = 0;
+	InvalidType = 0;
 	// HashType indicates that the request data object is of type hash
-	HashType       = 1;
+	HashType = 1;
 	// HashArrayType that the request data object contains a serialised array of hashes
-	HashArrayType  = 2;
+	HashArrayType = 2;
 	// NonceType indicates that the request data object is of type nonce (uint64)
-	NonceType      = 3;
+	NonceType = 3;
 	// EpochType indicates that the request data object is of type epoch
-	EpochType      = 4;
+	EpochType = 4;
+	// PubkeyArrayType indicates that the request data object contains a serialized array of public keys
+	PubkeyArrayType = 5;
 }
 
 // RequestData holds the requested data

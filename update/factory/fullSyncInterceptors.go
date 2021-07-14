@@ -514,15 +514,18 @@ func (ficf *fullSyncInterceptorsContainerFactory) createOneTxInterceptor(topic s
 
 	interceptor, err := interceptors.NewMultiDataInterceptor(
 		interceptors.ArgMultiDataInterceptor{
-			Topic:                topic,
-			Marshalizer:          ficf.argInterceptorFactory.CoreComponents.InternalMarshalizer(),
-			DataFactory:          txFactory,
-			Processor:            txProcessor,
-			Throttler:            ficf.globalThrottler,
-			AntifloodHandler:     ficf.antifloodHandler,
-			WhiteListRequest:     ficf.whiteListHandler,
-			CurrentPeerId:        ficf.messenger.ID(),
-			PreferredPeersHolder: ficf.preferredPeersHolder,
+			ArgSingleDataInterceptor: interceptors.ArgSingleDataInterceptor{
+				Topic:                topic,
+				DataFactory:          txFactory,
+				Processor:            txProcessor,
+				Throttler:            ficf.globalThrottler,
+				AntifloodHandler:     ficf.antifloodHandler,
+				WhiteListRequest:     ficf.whiteListHandler,
+				CurrentPeerId:        ficf.messenger.ID(),
+				PreferredPeersHolder: ficf.preferredPeersHolder,
+			},
+
+			Marshalizer: ficf.argInterceptorFactory.CoreComponents.InternalMarshalizer(),
 		},
 	)
 	if err != nil {
@@ -554,15 +557,18 @@ func (ficf *fullSyncInterceptorsContainerFactory) createOneUnsignedTxInterceptor
 
 	interceptor, err := interceptors.NewMultiDataInterceptor(
 		interceptors.ArgMultiDataInterceptor{
-			Topic:                topic,
-			Marshalizer:          ficf.argInterceptorFactory.CoreComponents.InternalMarshalizer(),
-			DataFactory:          txFactory,
-			Processor:            txProcessor,
-			Throttler:            ficf.globalThrottler,
-			AntifloodHandler:     ficf.antifloodHandler,
-			WhiteListRequest:     ficf.whiteListHandler,
-			CurrentPeerId:        ficf.messenger.ID(),
-			PreferredPeersHolder: ficf.preferredPeersHolder,
+			ArgSingleDataInterceptor: interceptors.ArgSingleDataInterceptor{
+				Topic:                topic,
+				DataFactory:          txFactory,
+				Processor:            txProcessor,
+				Throttler:            ficf.globalThrottler,
+				AntifloodHandler:     ficf.antifloodHandler,
+				WhiteListRequest:     ficf.whiteListHandler,
+				CurrentPeerId:        ficf.messenger.ID(),
+				PreferredPeersHolder: ficf.preferredPeersHolder,
+			},
+
+			Marshalizer: ficf.argInterceptorFactory.CoreComponents.InternalMarshalizer(),
 		},
 	)
 	if err != nil {
@@ -594,15 +600,17 @@ func (ficf *fullSyncInterceptorsContainerFactory) createOneRewardTxInterceptor(t
 
 	interceptor, err := interceptors.NewMultiDataInterceptor(
 		interceptors.ArgMultiDataInterceptor{
-			Topic:                topic,
-			Marshalizer:          ficf.argInterceptorFactory.CoreComponents.InternalMarshalizer(),
-			DataFactory:          txFactory,
-			Processor:            txProcessor,
-			Throttler:            ficf.globalThrottler,
-			AntifloodHandler:     ficf.antifloodHandler,
-			WhiteListRequest:     ficf.whiteListHandler,
-			CurrentPeerId:        ficf.messenger.ID(),
-			PreferredPeersHolder: ficf.preferredPeersHolder,
+			ArgSingleDataInterceptor: interceptors.ArgSingleDataInterceptor{
+				Topic:                topic,
+				DataFactory:          txFactory,
+				Processor:            txProcessor,
+				Throttler:            ficf.globalThrottler,
+				AntifloodHandler:     ficf.antifloodHandler,
+				WhiteListRequest:     ficf.whiteListHandler,
+				CurrentPeerId:        ficf.messenger.ID(),
+				PreferredPeersHolder: ficf.preferredPeersHolder,
+			},
+			Marshalizer: ficf.argInterceptorFactory.CoreComponents.InternalMarshalizer(),
 		},
 	)
 	if err != nil {
@@ -748,15 +756,18 @@ func (ficf *fullSyncInterceptorsContainerFactory) createOneTrieNodesInterceptor(
 
 	interceptor, err := interceptors.NewMultiDataInterceptor(
 		interceptors.ArgMultiDataInterceptor{
-			Topic:                topic,
-			Marshalizer:          ficf.argInterceptorFactory.CoreComponents.InternalMarshalizer(),
-			DataFactory:          trieNodesFactory,
-			Processor:            trieNodesProcessor,
-			Throttler:            ficf.globalThrottler,
-			AntifloodHandler:     ficf.antifloodHandler,
-			WhiteListRequest:     ficf.whiteListHandler,
-			CurrentPeerId:        ficf.messenger.ID(),
-			PreferredPeersHolder: ficf.preferredPeersHolder,
+			ArgSingleDataInterceptor: interceptors.ArgSingleDataInterceptor{
+				Topic:                topic,
+				DataFactory:          trieNodesFactory,
+				Processor:            trieNodesProcessor,
+				Throttler:            ficf.globalThrottler,
+				AntifloodHandler:     ficf.antifloodHandler,
+				WhiteListRequest:     ficf.whiteListHandler,
+				CurrentPeerId:        ficf.messenger.ID(),
+				PreferredPeersHolder: ficf.preferredPeersHolder,
+			},
+
+			Marshalizer: ficf.argInterceptorFactory.CoreComponents.InternalMarshalizer(),
 		},
 	)
 	if err != nil {
