@@ -102,9 +102,12 @@ func createBlockProcessor(blk data.ChainHandler) *mock.BlockProcessorMock {
 			_ = blk.SetCurrentBlockHeader(hdr.(*block.Header))
 			return nil
 		},
-		RevertAccountStateCalled: func(header data.HeaderHandler) {
+		RevertAccountStateCalled: func() {
 		},
 		CommitBlockCalled: func(header data.HeaderHandler, body data.BodyHandler) error {
+			return nil
+		},
+		ProcessScheduledBlockCalled: func(header data.HeaderHandler, body data.BodyHandler, haveTime func() time.Duration) error {
 			return nil
 		},
 	}
@@ -170,28 +173,28 @@ func initRoundHandler() consensus.RoundHandler {
 
 func CreateShardBootstrapMockArguments() sync.ArgShardBootstrapper {
 	argsBaseBootstrapper := sync.ArgBaseBootstrapper{
-		PoolsHolder:         createMockPools(),
-		Store:               createStore(),
-		ChainHandler:        initBlockchain(),
-		RoundHandler:        &mock.RoundHandlerMock{},
-		BlockProcessor:      &mock.BlockProcessorMock{},
-		WaitTime:            waitTime,
-		Hasher:              &mock.HasherMock{},
-		Marshalizer:         &mock.MarshalizerMock{},
-		ForkDetector:        &mock.ForkDetectorMock{},
-		RequestHandler:      &testscommon.RequestHandlerStub{},
-		ShardCoordinator:    mock.NewOneShardCoordinatorMock(),
-		Accounts:            &testscommon.AccountsStub{},
-		BlackListHandler:    &mock.BlackListHandlerStub{},
-		NetworkWatcher:      initNetworkWatcher(),
-		BootStorer:          &mock.BoostrapStorerMock{},
-		StorageBootstrapper: &mock.StorageBootstrapperMock{},
-		EpochHandler:        &mock.EpochStartTriggerStub{},
-		MiniblocksProvider:  &mock.MiniBlocksProviderStub{},
-		Uint64Converter:     &mock.Uint64ByteSliceConverterMock{},
-		AppStatusHandler:    &mock.AppStatusHandlerStub{},
-		Indexer:             &mock.IndexerMock{},
-		AccountsDBSyncer:    &mock.AccountsDBSyncerStub{},
+		PoolsHolder:                  createMockPools(),
+		Store:                        createStore(),
+		ChainHandler:                 initBlockchain(),
+		RoundHandler:                 &mock.RoundHandlerMock{},
+		BlockProcessor:               &mock.BlockProcessorMock{},
+		WaitTime:                     waitTime,
+		Hasher:                       &mock.HasherMock{},
+		Marshalizer:                  &mock.MarshalizerMock{},
+		ForkDetector:                 &mock.ForkDetectorMock{},
+		RequestHandler:               &testscommon.RequestHandlerStub{},
+		ShardCoordinator:             mock.NewOneShardCoordinatorMock(),
+		Accounts:                     &testscommon.AccountsStub{},
+		BlackListHandler:             &mock.BlackListHandlerStub{},
+		NetworkWatcher:               initNetworkWatcher(),
+		BootStorer:                   &mock.BoostrapStorerMock{},
+		StorageBootstrapper:          &mock.StorageBootstrapperMock{},
+		EpochHandler:                 &mock.EpochStartTriggerStub{},
+		MiniblocksProvider:           &mock.MiniBlocksProviderStub{},
+		Uint64Converter:              &mock.Uint64ByteSliceConverterMock{},
+		AppStatusHandler:             &mock.AppStatusHandlerStub{},
+		Indexer:                      &mock.IndexerMock{},
+		AccountsDBSyncer:             &mock.AccountsDBSyncerStub{},
 		ScheduledTxsExecutionHandler: &testscommon.ScheduledTxsExecutionStub{},
 	}
 

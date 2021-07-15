@@ -43,7 +43,7 @@ func createDefaultWorkerArgs(appStatusHandler core.AppStatusHandler) *spos.Worke
 		DecodeBlockHeaderCalled: func(dta []byte) data.HeaderHandler {
 			return nil
 		},
-		RevertAccountStateCalled: func(header data.HeaderHandler) {
+		RevertAccountStateCalled: func() {
 		},
 		DecodeBlockBodyCalled: func(dta []byte) data.BodyHandler {
 			return nil
@@ -589,7 +589,7 @@ func TestWorker_ProcessReceivedMessageComputeReceivedProposedBlockMetric(t *test
 				SoftwareVersion: []byte("version"),
 			}
 		},
-		RevertAccountStateCalled: func(header data.HeaderHandler) {
+		RevertAccountStateCalled: func() {
 		},
 		DecodeBlockBodyCalled: func(dta []byte) data.BodyHandler {
 			return nil
@@ -926,7 +926,7 @@ func TestWorker_ProcessReceivedMessageWrongChainIDInProposedBlockShouldError(t *
 					},
 				}
 			},
-			RevertAccountStateCalled: func(header data.HeaderHandler) {
+			RevertAccountStateCalled: func() {
 			},
 		},
 	)
@@ -970,7 +970,7 @@ func TestWorker_ProcessReceivedMessageWithABadOriginatorShouldErr(t *testing.T) 
 					},
 				}
 			},
-			RevertAccountStateCalled: func(header data.HeaderHandler) {
+			RevertAccountStateCalled: func() {
 			},
 			DecodeBlockBodyCalled: func(dta []byte) data.BodyHandler {
 				return nil
@@ -1023,7 +1023,7 @@ func TestWorker_ProcessReceivedMessageOkValsShouldWork(t *testing.T) {
 					},
 				}
 			},
-			RevertAccountStateCalled: func(header data.HeaderHandler) {
+			RevertAccountStateCalled: func() {
 			},
 			DecodeBlockBodyCalled: func(dta []byte) data.BodyHandler {
 				return nil
@@ -1443,7 +1443,7 @@ func TestWorker_ExtendShouldWorkAfterAWhile(t *testing.T) {
 	wrk := *initWorker(&mock.AppStatusHandlerStub{})
 	executed := int32(0)
 	blockProcessor := &mock.BlockProcessorMock{
-		RevertAccountStateCalled: func(header data.HeaderHandler) {
+		RevertAccountStateCalled: func() {
 			atomic.AddInt32(&executed, 1)
 		},
 	}
@@ -1468,7 +1468,7 @@ func TestWorker_ExtendShouldWork(t *testing.T) {
 	wrk := *initWorker(&mock.AppStatusHandlerStub{})
 	executed := int32(0)
 	blockProcessor := &mock.BlockProcessorMock{
-		RevertAccountStateCalled: func(header data.HeaderHandler) {
+		RevertAccountStateCalled: func() {
 			atomic.AddInt32(&executed, 1)
 		},
 	}

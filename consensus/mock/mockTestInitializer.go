@@ -28,7 +28,7 @@ func InitBlockProcessorMock() *BlockProcessorMock {
 	blockProcessorMock.CommitBlockCalled = func(header data.HeaderHandler, body data.BodyHandler) error {
 		return nil
 	}
-	blockProcessorMock.RevertAccountStateCalled = func(header data.HeaderHandler) {}
+	blockProcessorMock.RevertAccountStateCalled = func() {}
 	blockProcessorMock.ProcessBlockCalled = func(header data.HeaderHandler, body data.BodyHandler, haveTime func() time.Duration) error {
 		return nil
 	}
@@ -62,7 +62,7 @@ func InitBlockProcessorHeaderV2Mock() *BlockProcessorMock {
 	blockProcessorMock.CommitBlockCalled = func(header data.HeaderHandler, body data.BodyHandler) error {
 		return nil
 	}
-	blockProcessorMock.RevertAccountStateCalled = func(header data.HeaderHandler) {}
+	blockProcessorMock.RevertAccountStateCalled = func() {}
 	blockProcessorMock.ProcessBlockCalled = func(header data.HeaderHandler, body data.BodyHandler, haveTime func() time.Duration) error {
 		return nil
 	}

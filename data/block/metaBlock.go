@@ -500,3 +500,9 @@ func (m *MetaBlock) SetAdditionalData(_ headerVersionData.HeaderAdditionalData) 
 	// no extra data for the initial version metaBlock header
 	return nil
 }
+
+// GetAdditionalData gets the additional version-related data for the header
+func (m *MetaBlock) GetAdditionalData() headerVersionData.HeaderAdditionalData {
+	// no extra data for the initial version of meta block header
+	return nil
+}

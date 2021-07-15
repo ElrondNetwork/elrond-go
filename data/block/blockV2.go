@@ -509,3 +509,15 @@ func (hv2 *HeaderV2) SetAdditionalData(headerVersionData headerVersionData.Heade
 	}
 	return hv2.SetScheduledRootHash(headerVersionData.GetScheduledRootHash())
 }
+
+// GetAdditionalData gets the additional version related data for the header
+func (hv2 *HeaderV2) GetAdditionalData() headerVersionData.HeaderAdditionalData {
+	if hv2 == nil {
+		return nil
+	}
+
+	additionalVersionData := &headerVersionData.AdditionalData{
+		ScheduledRootHash: hv2.GetScheduledRootHash(),
+	}
+	return additionalVersionData
+}

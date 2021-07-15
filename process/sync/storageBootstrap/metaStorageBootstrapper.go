@@ -167,6 +167,17 @@ func (msb *metaStorageBootstrapper) applyNumPendingMiniBlocks(pendingMiniBlocksI
 	}
 }
 
+func (msb *metaStorageBootstrapper) getRootHash(metaBlockHash []byte) []byte {
+	metaBlock, err := process.GetMetaHeaderFromStorage(metaBlockHash, msb.marshalizer, msb.store)
+	if err != nil {
+		log.Debug("meta block is not found in MetaBlockUnit storage",
+			"hash", metaBlockHash)
+		return nil
+	}
+
+	return metaBlock.GetRootHash()
+}
+
 func checkMetaStorageBootstrapperArgs(args ArgsMetaStorageBootstrapper) error {
 	err := checkBaseStorageBootrstrapperArguments(args.ArgsBaseStorageBootstrapper)
 	if err != nil {

@@ -117,6 +117,7 @@ func TestScheduledTxsExecution_ExecuteShouldErrMissingTransaction(t *testing.T) 
 }
 
 func TestScheduledTxsExecution_ExecuteShouldErr(t *testing.T) {
+	t.Skip("Remove this line when processing of scheduled mini blocks will be done in the source shard")
 	t.Parallel()
 
 	localError := errors.New("error")
@@ -196,6 +197,7 @@ func TestScheduledTxsExecution_ExecuteAllShouldErrTimeIsOut(t *testing.T) {
 }
 
 func TestScheduledTxsExecution_ExecuteAllShouldErrFailedTransaction(t *testing.T) {
+	t.Skip("Remove this line when processing of scheduled mini blocks will be done in the source shard")
 	t.Parallel()
 
 	localError := errors.New("error")
@@ -235,6 +237,7 @@ func TestScheduledTxsExecution_ExecuteAllShouldWorkOnErrFailedTransaction(t *tes
 }
 
 func TestScheduledTxsExecution_ExecuteAllShouldWork(t *testing.T) {
+	t.Skip("Remove this line when processing of scheduled mini blocks will be done in the source shard")
 	t.Parallel()
 
 	numTxsExecuted := 0
@@ -259,6 +262,7 @@ func TestScheduledTxsExecution_ExecuteAllShouldWork(t *testing.T) {
 }
 
 func TestScheduledTxsExecution_executeShouldErr(t *testing.T) {
+	t.Skip("Remove this line when processing of scheduled mini blocks will be done in the source shard")
 	t.Parallel()
 
 	scheduledTxsExec, _ := NewScheduledTxsExecution(
@@ -271,6 +275,7 @@ func TestScheduledTxsExecution_executeShouldErr(t *testing.T) {
 }
 
 func TestScheduledTxsExecution_executeShouldWork(t *testing.T) {
+	t.Skip("Remove this line when processing of scheduled mini blocks will be done in the source shard")
 	t.Parallel()
 
 	response := errors.New("response")

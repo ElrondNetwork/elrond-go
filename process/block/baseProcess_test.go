@@ -356,11 +356,11 @@ func CreateMockArguments(
 					return nil
 				},
 			},
-			BlockTracker:       mock.NewBlockTrackerMock(bootstrapComponents.ShardCoordinator(), startHeaders),
-			BlockSizeThrottler: &mock.BlockSizeThrottlerStub{},
-			Version:            "softwareVersion",
-			HistoryRepository:  &dblookupext.HistoryRepositoryStub{},
-			EpochNotifier:      &mock.EpochNotifierStub{},
+			BlockTracker:                 mock.NewBlockTrackerMock(bootstrapComponents.ShardCoordinator(), startHeaders),
+			BlockSizeThrottler:           &mock.BlockSizeThrottlerStub{},
+			Version:                      "softwareVersion",
+			HistoryRepository:            &dblookupext.HistoryRepositoryStub{},
+			EpochNotifier:                &mock.EpochNotifierStub{},
 			ScheduledTxsExecutionHandler: &testscommon.ScheduledTxsExecutionStub{},
 		},
 	}
@@ -489,7 +489,7 @@ func TestBaseProcessor_RevertStateRecreateTrieFailsShouldErr(t *testing.T) {
 	bp, _ := blproc.NewShardProcessor(arguments)
 
 	hdr := block.Header{Nonce: 37}
-	err := bp.RevertStateToBlock(&hdr)
+	err := bp.RevertStateToBlock(&hdr, hdr.RootHash)
 	assert.Equal(t, expectedErr, err)
 }
 
@@ -1031,7 +1031,7 @@ func TestBlockProcessor_PruneStateOnRollbackPrunesPeerTrieIfAccPruneIsDisabled(t
 		ValidatorStatsRootHash: []byte("currValidatorRootHash"),
 	}
 
-	bp.PruneStateOnRollback(currHeader, prevHeader)
+	bp.PruneStateOnRollback(currHeader, []byte("currHeaderHash"), prevHeader, []byte("prevHeaderHash"))
 	assert.Equal(t, 2, pruningCalled)
 }
 
@@ -1077,7 +1077,7 @@ func TestBlockProcessor_PruneStateOnRollbackPrunesPeerTrieIfSameRootHashButDiffe
 		ValidatorStatsRootHash: []byte("currValidatorRootHash"),
 	}
 
-	bp.PruneStateOnRollback(currHeader, prevHeader)
+	bp.PruneStateOnRollback(currHeader, []byte("currHeaderHash"), prevHeader, []byte("prevHeaderHash"))
 	assert.Equal(t, 2, pruningCalled)
 }
 

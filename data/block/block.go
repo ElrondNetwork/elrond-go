@@ -442,3 +442,9 @@ func (h *Header) SetAdditionalData(_ headerVersionData.HeaderAdditionalData) err
 func (h *Header) HasScheduledSupport() bool {
 	return false
 }
+
+// GetAdditionalData gets the additional version-related data for the header
+func (h *Header) GetAdditionalData() headerVersionData.HeaderAdditionalData {
+	// no extra data for the initial version of shard block header
+	return nil
+}

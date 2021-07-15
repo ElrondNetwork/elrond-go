@@ -283,7 +283,7 @@ func addMissingNonces(diff int64, lastNonce uint64, maxNumNoncesToAdd int) []uin
 }
 
 func displayHeader(headerHandler data.HeaderHandler) []*display.LineData {
-	var valStatRootHash, epochStartMetaHash []byte
+	var valStatRootHash, epochStartMetaHash, scheduledRootHash []byte
 	metaHeader, isMetaHeader := headerHandler.(data.MetaHeaderHandler)
 	if isMetaHeader {
 		valStatRootHash = metaHeader.GetValidatorStatsRootHash()
@@ -292,6 +292,10 @@ func displayHeader(headerHandler data.HeaderHandler) []*display.LineData {
 		if isShardHeader {
 			epochStartMetaHash = shardHeader.GetEpochStartMetaHash()
 		}
+	}
+	additionalData := headerHandler.GetAdditionalData()
+	if !check.IfNil(additionalData) {
+		scheduledRootHash = additionalData.GetScheduledRootHash()
 	}
 	return []*display.LineData{
 		display.NewLineData(false, []string{
@@ -338,6 +342,10 @@ func displayHeader(headerHandler data.HeaderHandler) []*display.LineData {
 			"",
 			"Leader's Signature",
 			logger.DisplayByteSlice(headerHandler.GetLeaderSignature())}),
+		display.NewLineData(false, []string{
+			"",
+			"Scheduled root hash",
+			logger.DisplayByteSlice(scheduledRootHash)}),
 		display.NewLineData(false, []string{
 			"",
 			"Root hash",
@@ -1045,13 +1053,14 @@ func (bp *baseProcessor) saveBody(body *block.Body, header data.HeaderHandler, h
 		}
 	}
 
+	scheduledRootHash := bp.scheduledTxsExecutionHandler.GetScheduledRootHash()
 	mapScheduledSCRs := bp.scheduledTxsExecutionHandler.GetScheduledSCRs()
-	marshalizedScheduledSCRs, errNotCritical := bp.getMarshalizedScheduledSCRs(mapScheduledSCRs)
+	marshalizedRootHashAndScheduledSCRs, errNotCritical := bp.getMarshalizedScheduledRootHashAndSCRs(scheduledRootHash, mapScheduledSCRs)
 	if errNotCritical != nil {
 		log.Warn("saveBody.getMarshalizedScheduledSCRs", "error", errNotCritical.Error())
 	} else {
-		if len(marshalizedScheduledSCRs) > 0 {
-			errNotCritical = bp.store.Put(dataRetriever.ScheduledSCRsUnit, headerHash, marshalizedScheduledSCRs)
+		if len(marshalizedRootHashAndScheduledSCRs) > 0 {
+			errNotCritical = bp.store.Put(dataRetriever.ScheduledSCRsUnit, headerHash, marshalizedRootHashAndScheduledSCRs)
 			if errNotCritical != nil {
 				log.Warn("saveBody.Put -> ScheduledSCRsUnit", "error", errNotCritical.Error())
 			}
@@ -1122,7 +1131,7 @@ func getLastSelfNotarizedHeaderByItself(chainHandler data.ChainHandler) (data.He
 
 func (bp *baseProcessor) updateStateStorage(
 	finalHeader data.HeaderHandler,
-	rootHash []byte,
+	currRootHash []byte,
 	prevRootHash []byte,
 	accounts state.AccountsAdapter,
 	statePruningQueue core.Queue,
@@ -1134,12 +1143,12 @@ func (bp *baseProcessor) updateStateStorage(
 	// TODO generate checkpoint on a trigger
 	if bp.stateCheckpointModulus != 0 {
 		if finalHeader.GetNonce()%uint64(bp.stateCheckpointModulus) == 0 {
-			log.Debug("trie checkpoint", "rootHash", rootHash)
-			accounts.SetStateCheckpoint(rootHash)
+			log.Debug("trie checkpoint", "currRootHash", currRootHash)
+			accounts.SetStateCheckpoint(currRootHash)
 		}
 	}
 
-	if bytes.Equal(prevRootHash, rootHash) {
+	if bytes.Equal(prevRootHash, currRootHash) {
 		return
 	}
 
@@ -1153,13 +1162,37 @@ func (bp *baseProcessor) updateStateStorage(
 }
 
 // RevertAccountState reverts the account state for cleanup failed process
-func (bp *baseProcessor) RevertAccountState(_ data.HeaderHandler) {
+func (bp *baseProcessor) RevertAccountState() {
 	for key := range bp.accountsDB {
 		err := bp.accountsDB[key].RevertToSnapshot(0)
 		if err != nil {
 			log.Debug("RevertToSnapshot", "error", err.Error())
 		}
 	}
+
+	bp.revertScheduledRootHashAndSCRs()
+}
+
+func (bp *baseProcessor) revertScheduledRootHashAndSCRs() {
+	header, headerHash := bp.getCurrentHeaderAndHash()
+	process.SetScheduledRootHashAndSCRs(
+		headerHash,
+		header.GetRootHash(),
+		make(map[block.Type][]data.TransactionHandler),
+		bp.store,
+		bp.marshalizer,
+		bp.scheduledTxsExecutionHandler)
+}
+
+func (bp *baseProcessor) getCurrentHeaderAndHash() (data.HeaderHandler, []byte) {
+	headerHandler := bp.blockChain.GetCurrentBlockHeader()
+	headerHash := bp.blockChain.GetCurrentBlockHeaderHash()
+	if check.IfNil(headerHandler) {
+		headerHandler = bp.blockChain.GetGenesisHeader()
+		headerHash = bp.blockChain.GetGenesisHeaderHash()
+	}
+
+	return headerHandler, headerHash
 }
 
 // GetAccountsDBSnapshot returns the account snapshot
@@ -1193,14 +1226,19 @@ func (bp *baseProcessor) commitAll() error {
 	return nil
 }
 
-// PruneStateOnRollback recreates the state tries to the root hashes indicated by the provided header
-func (bp *baseProcessor) PruneStateOnRollback(currHeader data.HeaderHandler, prevHeader data.HeaderHandler) {
+// PruneStateOnRollback recreates the state tries to the root hashes indicated by the provided headers
+func (bp *baseProcessor) PruneStateOnRollback(currHeader data.HeaderHandler, currHeaderHash []byte, prevHeader data.HeaderHandler, prevHeaderHash []byte) {
 	for key := range bp.accountsDB {
 		if !bp.accountsDB[key].IsPruningEnabled() {
 			continue
 		}
 
 		rootHash, prevRootHash := bp.getRootHashes(currHeader, prevHeader, key)
+
+		if key == state.UserAccountsState {
+			rootHash = process.GetScheduledRootHash(currHeaderHash, rootHash, bp.store, bp.marshalizer)
+			prevRootHash = process.GetScheduledRootHash(prevHeaderHash, prevRootHash, bp.store, bp.marshalizer)
+		}
 
 		if bytes.Equal(rootHash, prevRootHash) {
 			continue
@@ -1409,24 +1447,42 @@ func (bp *baseProcessor) Close() error {
 }
 
 // ProcessScheduledBlock processes a scheduled block
-func (bp *baseProcessor) ProcessScheduledBlock(header data.HeaderHandler, _ data.BodyHandler, haveTime func() time.Duration) error {
+func (bp *baseProcessor) ProcessScheduledBlock(_ data.HeaderHandler, _ data.BodyHandler, haveTime func() time.Duration) error {
+	var err error
+	defer func() {
+		if err != nil {
+			// TODO: check if possible to revert only the scheduled
+			bp.RevertAccountState()
+		}
+	}()
+
 	startTime := time.Now()
-	err := bp.scheduledTxsExecutionHandler.ExecuteAll(haveTime)
+	err = bp.scheduledTxsExecutionHandler.ExecuteAll(haveTime)
 	elapsedTime := time.Since(startTime)
 	log.Debug("elapsed time to execute all scheduled transactions",
 		"time [s]", elapsedTime,
 	)
 	if err != nil {
-		// TODO: check if possible to revert only the scheduled
-		bp.RevertAccountState(header)
+		return err
 	}
 
-	return err
+	rootHash, err := bp.accountsDB[state.UserAccountsState].RootHash()
+	if err != nil {
+		return err
+	}
+
+	bp.scheduledTxsExecutionHandler.SetScheduledRootHash(rootHash)
+
+	return nil
 }
 
-func (bp *baseProcessor) getMarshalizedScheduledSCRs(mapSCRs map[block.Type][]data.TransactionHandler) ([]byte, error) {
+func (bp *baseProcessor) getMarshalizedScheduledRootHashAndSCRs(
+	scheduledRootHash []byte,
+	mapScheduledSCRs map[block.Type][]data.TransactionHandler,
+) ([]byte, error) {
 	scrsBatch := &batch.Batch{}
-	for blockType, scrs := range mapSCRs {
+	scrsBatch.Data = append(scrsBatch.Data, scheduledRootHash)
+	for blockType, scrs := range mapScheduledSCRs {
 		if len(scrs) == 0 {
 			continue
 		}
@@ -1448,7 +1504,7 @@ func (bp *baseProcessor) getMarshalizedScheduledSCRs(mapSCRs map[block.Type][]da
 		scrsBatch.Data = append(scrsBatch.Data, marshalizedScheduledSCRs)
 	}
 
-	if len(scrsBatch.Data) == 0 {
+	if len(scrsBatch.Data) <= 1 {
 		return make([]byte, 0), nil
 	}
 

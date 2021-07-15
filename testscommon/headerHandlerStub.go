@@ -343,3 +343,8 @@ func (hhs *HeaderHandlerStub) SetAdditionalData(_ headerVersionData.HeaderAdditi
 func (hhs *HeaderHandlerStub) HasScheduledSupport() bool {
 	return false
 }
+
+// GetAdditionalData -
+func (hhs *HeaderHandlerStub) GetAdditionalData() headerVersionData.HeaderAdditionalData {
+	return nil
+}

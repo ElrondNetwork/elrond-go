@@ -227,7 +227,7 @@ func (mp *metaProcessor) ProcessBlock(
 
 	defer func() {
 		if err != nil {
-			mp.RevertAccountState(header)
+			mp.RevertAccountState()
 		}
 	}()
 
@@ -1113,7 +1113,7 @@ func (mp *metaProcessor) CommitBlock(
 	var err error
 	defer func() {
 		if err != nil {
-			mp.RevertAccountState(headerHandler)
+			mp.RevertAccountState()
 		}
 	}()
 
@@ -1212,7 +1212,8 @@ func (mp *metaProcessor) CommitBlock(
 	if !ok {
 		log.Warn("metaBlock.CommitBlock - nil current block header")
 	}
-	mp.updateState(lastMetaBlock)
+	lastMetaBlockHash := mp.blockChain.GetCurrentBlockHeaderHash()
+	mp.updateState(lastMetaBlock, lastMetaBlockHash)
 
 	err = mp.blockChain.SetCurrentBlockHeader(header)
 	if err != nil {
@@ -1347,7 +1348,7 @@ func (mp *metaProcessor) displayPoolsInfo() {
 	mp.displayMiniBlocksPool()
 }
 
-func (mp *metaProcessor) updateState(lastMetaBlock data.MetaHeaderHandler) {
+func (mp *metaProcessor) updateState(lastMetaBlock data.MetaHeaderHandler, lastMetaBlockHash []byte) {
 	if check.IfNil(lastMetaBlock) {
 		log.Debug("updateState nil header")
 		return
@@ -1355,8 +1356,9 @@ func (mp *metaProcessor) updateState(lastMetaBlock data.MetaHeaderHandler) {
 
 	mp.validatorStatisticsProcessor.SetLastFinalizedRootHash(lastMetaBlock.GetValidatorStatsRootHash())
 
+	prevHeaderHash := lastMetaBlock.GetPrevHash()
 	prevHeader, errNotCritical := process.GetMetaHeader(
-		lastMetaBlock.GetPrevHash(),
+		prevHeaderHash,
 		mp.dataPool.Headers(),
 		mp.marshalizer,
 		mp.store,
@@ -1366,9 +1368,12 @@ func (mp *metaProcessor) updateState(lastMetaBlock data.MetaHeaderHandler) {
 		return
 	}
 
+	lastMetaBlockRootHash := process.GetScheduledRootHash(lastMetaBlockHash, lastMetaBlock.GetRootHash(), mp.store, mp.marshalizer)
+	prevHeaderRootHash := process.GetScheduledRootHash(prevHeaderHash, prevHeader.GetRootHash(), mp.store, mp.marshalizer)
+
 	if lastMetaBlock.IsStartOfEpochBlock() {
-		log.Debug("trie snapshot", "rootHash", lastMetaBlock.GetRootHash())
-		mp.accountsDB[state.UserAccountsState].SnapshotState(lastMetaBlock.GetRootHash())
+		log.Debug("trie snapshot", "rootHash", lastMetaBlock.GetRootHash(), "scheduledRootHash", lastMetaBlockRootHash)
+		mp.accountsDB[state.UserAccountsState].SnapshotState(lastMetaBlockRootHash)
 		mp.accountsDB[state.PeerAccountsState].SnapshotState(lastMetaBlock.GetValidatorStatsRootHash())
 		go func() {
 			metaBlock, ok := lastMetaBlock.(*block.MetaBlock)
@@ -1376,7 +1381,7 @@ func (mp *metaProcessor) updateState(lastMetaBlock data.MetaHeaderHandler) {
 				log.Warn("cannot commit Trie Epoch Root Hash: lastMetaBlock is not *block.MetaBlock")
 				return
 			}
-			err := mp.commitTrieEpochRootHashIfNeeded(metaBlock, lastMetaBlock.GetRootHash())
+			err := mp.commitTrieEpochRootHashIfNeeded(metaBlock, lastMetaBlockRootHash)
 			if err != nil {
 				log.Warn("couldn't commit trie checkpoint", "epoch", metaBlock.Epoch, "error", err)
 			}
@@ -1385,8 +1390,8 @@ func (mp *metaProcessor) updateState(lastMetaBlock data.MetaHeaderHandler) {
 
 	mp.updateStateStorage(
 		lastMetaBlock,
-		lastMetaBlock.GetRootHash(),
-		prevHeader.GetRootHash(),
+		lastMetaBlockRootHash,
+		prevHeaderRootHash,
 		mp.accountsDB[state.UserAccountsState],
 		mp.userStatePruningQueue,
 	)
@@ -1501,13 +1506,14 @@ func (mp *metaProcessor) commitEpochStart(header *block.MetaBlock, body *block.B
 	}
 }
 
-// RevertStateToBlock recreates the state tries to the root hashes indicated by the provided header
-func (mp *metaProcessor) RevertStateToBlock(header data.HeaderHandler) error {
-	err := mp.accountsDB[state.UserAccountsState].RecreateTrie(header.GetRootHash())
+// RevertStateToBlock recreates the state tries to the root hashes indicated by the provided root hash and header
+func (mp *metaProcessor) RevertStateToBlock(header data.HeaderHandler, rootHash []byte) error {
+	err := mp.accountsDB[state.UserAccountsState].RecreateTrie(rootHash)
 	if err != nil {
 		log.Debug("recreate trie with error for header",
 			"nonce", header.GetNonce(),
-			"hash", header.GetRootHash(),
+			"header root hash", header.GetRootHash(),
+			"given root hash", rootHash,
 			"error", err.Error(),
 		)
 

@@ -97,13 +97,13 @@ func (sr *subroundBlock) doBlockJob() bool {
 		return false
 	}
 
-	sr.ConsensusCoreHandler.ScheduledProcessor().StartScheduledProcessing(header, body)
-
 	err = sr.SetSelfJobDone(sr.Current(), true)
 	if err != nil {
 		log.Debug("doBlockJob.SetSelfJobDone", "error", err.Error())
 		return false
 	}
+
+	sr.ConsensusCoreHandler.ScheduledProcessor().StartScheduledProcessing(header, body)
 
 	return true
 }

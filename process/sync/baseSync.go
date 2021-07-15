@@ -106,13 +106,13 @@ type baseBootstrap struct {
 	indexer          process.Indexer
 	accountsDBSyncer process.AccountsDBSyncer
 
-	chRcvMiniBlocks    chan bool
-	mutRcvMiniBlocks   sync.Mutex
-	miniBlocksProvider process.MiniBlockProvider
-	poolsHolder        dataRetriever.PoolsHolder
-	mutRequestHeaders  sync.Mutex
-	cancelFunc         func()
-	isInImportMode     bool
+	chRcvMiniBlocks              chan bool
+	mutRcvMiniBlocks             sync.Mutex
+	miniBlocksProvider           process.MiniBlockProvider
+	poolsHolder                  dataRetriever.PoolsHolder
+	mutRequestHeaders            sync.Mutex
+	cancelFunc                   func()
+	isInImportMode               bool
 	scheduledTxsExecutionHandler process.ScheduledTxsExecutionHandler
 }
 
@@ -609,6 +609,16 @@ func (boot *baseBootstrap) syncBlock() error {
 		return err
 	}
 
+	startProcessScheduledBlockTime := time.Now()
+	err = boot.blockProcessor.ProcessScheduledBlock(header, body, haveTime)
+	elapsedTime = time.Since(startProcessScheduledBlockTime)
+	log.Debug("elapsed time to process scheduled block",
+		"time [s]", elapsedTime,
+	)
+	if err != nil {
+		return err
+	}
+
 	startCommitBlockTime := time.Now()
 	err = boot.blockProcessor.CommitBlock(header, body)
 	elapsedTime = time.Since(startCommitBlockTime)
@@ -714,7 +724,13 @@ func (boot *baseBootstrap) rollBack(revertUsingForkNonce bool) error {
 			)
 		}
 
-		boot.setScheduledSCRs(prevHeaderHash)
+		process.SetScheduledRootHashAndSCRs(
+			prevHeaderHash,
+			prevHeader.GetRootHash(),
+			make(map[block.Type][]data.TransactionHandler),
+			boot.store,
+			boot.marshalizer,
+			boot.scheduledTxsExecutionHandler)
 
 		boot.indexer.RevertIndexedBlock(currHeader, currBody)
 
@@ -733,20 +749,6 @@ func (boot *baseBootstrap) rollBack(revertUsingForkNonce bool) error {
 
 	log.Debug("ending roll back")
 	return nil
-}
-
-func (boot *baseBootstrap) setScheduledSCRs(headerHash []byte) {
-	mapScheduledSCRs, err := process.GetScheduledSCRsFromStorage(headerHash, boot.store, boot.marshalizer)
-	if err != nil {
-		log.Debug("get scheduled scrs from storage",
-			"error", err.Error(),
-			"header hash", headerHash,
-		)
-	}
-
-	if len(mapScheduledSCRs) > 0 {
-		boot.scheduledTxsExecutionHandler.SetScheduledSCRs(mapScheduledSCRs)
-	}
 }
 
 func (boot *baseBootstrap) rollBackOneBlock(
@@ -776,11 +778,14 @@ func (boot *baseBootstrap) rollBackOneBlock(
 		}
 	}
 
-	err = boot.blockProcessor.RevertStateToBlock(prevHeader)
+	rootHash := process.GetScheduledRootHash(prevHeaderHash, prevHeader.GetRootHash(), boot.store, boot.marshalizer)
+
+	err = boot.blockProcessor.RevertStateToBlock(prevHeader, rootHash)
 	if err != nil {
 		return nil, err
 	}
-	boot.blockProcessor.PruneStateOnRollback(currHeader, prevHeader)
+
+	boot.blockProcessor.PruneStateOnRollback(currHeader, currHeaderHash, prevHeader, prevHeaderHash)
 
 	currBlockBody, errNotCritical := boot.blockBootstrapper.getBlockBody(currHeader)
 	if errNotCritical != nil {
@@ -862,7 +867,15 @@ func (boot *baseBootstrap) restoreState(
 
 	boot.chainHandler.SetCurrentBlockHeaderHash(currHeaderHash)
 
-	err = boot.blockProcessor.RevertStateToBlock(currHeader)
+	process.SetScheduledRootHashAndSCRs(
+		currHeaderHash,
+		currHeader.GetRootHash(),
+		make(map[block.Type][]data.TransactionHandler),
+		boot.store,
+		boot.marshalizer,
+		boot.scheduledTxsExecutionHandler)
+
+	err = boot.blockProcessor.RevertStateToBlock(currHeader, boot.scheduledTxsExecutionHandler.GetScheduledRootHash())
 	if err != nil {
 		log.Debug("RevertState", "error", err.Error())
 	}

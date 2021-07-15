@@ -40,6 +40,15 @@ func (steh *ScheduledTxsExecutionHandler) GetScheduledSCRs() map[block.Type][]da
 func (steh *ScheduledTxsExecutionHandler) SetScheduledSCRs(_ map[block.Type][]data.TransactionHandler) {
 }
 
+// GetScheduledRootHash does nothing as it is a disabled component
+func (steh *ScheduledTxsExecutionHandler) GetScheduledRootHash() []byte {
+	return make([]byte, 0)
+}
+
+// SetScheduledRootHash does nothing as it is a disabled component
+func (steh *ScheduledTxsExecutionHandler) SetScheduledRootHash(_ []byte) {
+}
+
 // SetTransactionProcessor does nothing as it is a disabled component
 func (steh *ScheduledTxsExecutionHandler) SetTransactionProcessor(_ process.TransactionProcessor) {
 }

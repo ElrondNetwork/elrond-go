@@ -170,6 +170,17 @@ func (ssb *shardStorageBootstrapper) applySelfNotarizedHeaders(
 func (ssb *shardStorageBootstrapper) applyNumPendingMiniBlocks(_ []bootstrapStorage.PendingMiniBlocksInfo) {
 }
 
+func (ssb *shardStorageBootstrapper) getRootHash(shardHeaderHash []byte) []byte {
+	shardHeader, err := process.GetShardHeaderFromStorage(shardHeaderHash, ssb.marshalizer, ssb.store)
+	if err != nil {
+		log.Debug("shard header is not found in BlockHeaderUnit storage",
+			"hash", shardHeaderHash)
+		return nil
+	}
+
+	return shardHeader.GetRootHash()
+}
+
 func checkShardStorageBootstrapperArgs(args ArgsShardStorageBootstrapper) error {
 	return checkBaseStorageBootrstrapperArguments(args.ArgsBaseStorageBootstrapper)
 }

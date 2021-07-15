@@ -2,6 +2,7 @@ package storageBootstrap
 
 import (
 	"fmt"
+	"github.com/ElrondNetwork/elrond-go/data/block"
 
 	"github.com/ElrondNetwork/elrond-go-logger"
 	"github.com/ElrondNetwork/elrond-go/core"
@@ -176,14 +177,13 @@ func (st *storageBootstrapper) loadBlocks() error {
 		log.Debug("cannot save last round in storage ", "error", err.Error())
 	}
 
-	mapScheduledSCRs, err := process.GetScheduledSCRsFromStorage(headerInfo.LastHeader.Hash, st.store, st.marshalizer)
-	if err != nil {
-		log.Debug("cannot get scheduled scrs from storage", "error", err.Error())
-	}
-
-	if len(mapScheduledSCRs) > 0 {
-		st.scheduledTxsExecutionHandler.SetScheduledSCRs(mapScheduledSCRs)
-	}
+	process.SetScheduledRootHashAndSCRs(
+		headerInfo.LastHeader.Hash,
+		st.bootstrapper.getRootHash(headerInfo.LastHeader.Hash),
+		make(map[block.Type][]data.TransactionHandler),
+		st.store,
+		st.marshalizer,
+		st.scheduledTxsExecutionHandler)
 
 	st.highestNonce = headerInfo.LastHeader.Nonce
 
@@ -256,7 +256,9 @@ func (st *storageBootstrapper) applyHeaderInfo(hdrInfo bootstrapStorage.Bootstra
 		return process.ErrInvalidChainID
 	}
 
-	err = st.blkExecutor.RevertStateToBlock(headerFromStorage)
+	rootHash := process.GetScheduledRootHash(headerHash, headerFromStorage.GetRootHash(), st.store, st.marshalizer)
+
+	err = st.blkExecutor.RevertStateToBlock(headerFromStorage, rootHash)
 	if err != nil {
 		log.Debug("cannot recreate trie for header with nonce", "nonce", headerFromStorage.GetNonce())
 		return err
@@ -419,7 +421,7 @@ func (st *storageBootstrapper) applyBlock(header data.HeaderHandler, headerHash 
 
 func (st *storageBootstrapper) restoreBlockChainToGenesis() {
 	genesisHeader := st.blkc.GetGenesisHeader()
-	err := st.blkExecutor.RevertStateToBlock(genesisHeader)
+	err := st.blkExecutor.RevertStateToBlock(genesisHeader, genesisHeader.GetRootHash())
 	if err != nil {
 		log.Debug("cannot recreate trie for header with nonce", "nonce", genesisHeader.GetNonce())
 	}

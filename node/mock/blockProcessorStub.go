@@ -13,7 +13,7 @@ type BlockProcessorStub struct {
 	ProcessBlockCalled               func(header data.HeaderHandler, body data.BodyHandler, haveTime func() time.Duration) error
 	ProcessScheduledBlockCalled      func(header data.HeaderHandler, body data.BodyHandler, haveTime func() time.Duration) error
 	CommitBlockCalled                func(header data.HeaderHandler, body data.BodyHandler) error
-	RevertAccountStateCalled         func(header data.HeaderHandler)
+	RevertAccountStateCalled         func()
 	CreateGenesisBlockCalled         func(balances map[string]*big.Int) (data.HeaderHandler, error)
 	CreateBlockCalled                func(initialHdrData data.HeaderHandler, haveTime func() bool) (data.HeaderHandler, data.BodyHandler, error)
 	RestoreBlockIntoPoolsCalled      func(header data.HeaderHandler, body data.BodyHandler) error
@@ -23,8 +23,8 @@ type BlockProcessorStub struct {
 	DecodeBlockHeaderCalled          func(dta []byte) data.HeaderHandler
 	AddLastNotarizedHdrCalled        func(shardId uint32, processedHdr data.HeaderHandler)
 	CreateNewHeaderCalled            func(round uint64, nonce uint64) (data.HeaderHandler, error)
-	PruneStateOnRollbackCalled       func(currHeader data.HeaderHandler, prevHeader data.HeaderHandler)
-	RevertStateToBlockCalled         func(header data.HeaderHandler) error
+	PruneStateOnRollbackCalled       func(currHeader data.HeaderHandler, currHeaderHash []byte, prevHeader data.HeaderHandler, prevHeaderHash []byte)
+	RevertStateToBlockCalled         func(header data.HeaderHandler, rootHash []byte) error
 	RevertIndexedBlockCalled         func(header data.HeaderHandler)
 }
 
@@ -52,8 +52,8 @@ func (bps *BlockProcessorStub) CommitBlock(header data.HeaderHandler, body data.
 }
 
 // RevertAccountState mocks revert of the accounts state
-func (bps *BlockProcessorStub) RevertAccountState(header data.HeaderHandler) {
-	bps.RevertAccountStateCalled(header)
+func (bps *BlockProcessorStub) RevertAccountState() {
+	bps.RevertAccountStateCalled()
 }
 
 // CreateGenesisBlock mocks the creation of a genesis block body
@@ -62,9 +62,9 @@ func (bps *BlockProcessorStub) CreateGenesisBlock(balances map[string]*big.Int) 
 }
 
 // PruneStateOnRollback recreates thee state tries to the root hashes indicated by the provided header
-func (bps *BlockProcessorStub) PruneStateOnRollback(currHeader data.HeaderHandler, prevHeader data.HeaderHandler) {
+func (bps *BlockProcessorStub) PruneStateOnRollback(currHeader data.HeaderHandler, currHeaderHash []byte, prevHeader data.HeaderHandler, prevHeaderHash []byte) {
 	if bps.PruneStateOnRollbackCalled != nil {
-		bps.PruneStateOnRollbackCalled(currHeader, prevHeader)
+		bps.PruneStateOnRollbackCalled(currHeader, currHeaderHash, prevHeader, prevHeaderHash)
 	}
 }
 
@@ -118,9 +118,9 @@ func (bps *BlockProcessorStub) IsInterfaceNil() bool {
 }
 
 // RevertStateToBlock recreates the state tries to the root hashes indicated by the provided header
-func (bps *BlockProcessorStub) RevertStateToBlock(header data.HeaderHandler) error {
+func (bps *BlockProcessorStub) RevertStateToBlock(header data.HeaderHandler, rootHash []byte) error {
 	if bps.RevertStateToBlockCalled != nil {
-		return bps.RevertStateToBlockCalled(header)
+		return bps.RevertStateToBlockCalled(header, rootHash)
 	}
 
 	return nil

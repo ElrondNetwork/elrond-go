@@ -4193,6 +4193,10 @@ func TestShardProcessor_updateStateStorage(t *testing.T) {
 
 	storer := &mock.ChainStorerMock{
 		GetStorerCalled: func(unitType dataRetriever.UnitType) storage.Storer {
+			if unitType == dataRetriever.ScheduledSCRsUnit {
+				return nil
+			}
+
 			return hdrStore
 		},
 	}
