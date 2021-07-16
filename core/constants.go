@@ -793,3 +793,9 @@ const EpochStartInterceptorsIdentifier = "epoch start interceptor"
 
 // GetNodeFromDBErrorString represents the string which is returned when a getting node from DB returns an error
 const GetNodeFromDBErrorString = "getNodeFromDB error"
+
+// SCDeployIdentifier is the identifier for a smart contract deploy
+const SCDeployIdentifier = "SCDeploy"
+
+// SCUpgradeIdentifier is the identifier for a smart contract upgrade
+const SCUpgradeIdentifier = "SCUpgrade"
