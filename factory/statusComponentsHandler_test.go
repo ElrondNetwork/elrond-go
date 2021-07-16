@@ -34,13 +34,13 @@ func TestManagedStatusComponents_Create_ShouldWork(t *testing.T) {
 	statusComponentsFactory, _ := factory.NewStatusComponentsFactory(statusArgs)
 	managedStatusComponents, err := factory.NewManagedStatusComponents(statusComponentsFactory)
 	require.NoError(t, err)
-	require.Nil(t, managedStatusComponents.ElasticIndexer())
+	require.Nil(t, managedStatusComponents.OutportHandler())
 	require.Nil(t, managedStatusComponents.SoftwareVersionChecker())
 	require.Nil(t, managedStatusComponents.TpsBenchmark())
 
 	err = managedStatusComponents.Create()
 	require.NoError(t, err)
-	require.NotNil(t, managedStatusComponents.ElasticIndexer())
+	require.NotNil(t, managedStatusComponents.OutportHandler())
 	require.NotNil(t, managedStatusComponents.SoftwareVersionChecker())
 	require.NotNil(t, managedStatusComponents.TpsBenchmark())
 }

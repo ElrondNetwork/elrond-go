@@ -19,7 +19,7 @@ var ErrInvalidValue = errors.New("invalid value provided")
 // ErrNilInputData signals that a nil data has been provided
 var ErrNilInputData = errors.New("nil input data")
 
-//ErrNilUrl signals that the provided url is empty
+// ErrNilUrl signals that the provided url is empty
 var ErrNilUrl = errors.New("url is empty")
 
 // ErrPemFileIsInvalid signals that a pem file is invalid

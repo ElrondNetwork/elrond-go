@@ -13,6 +13,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/data/block"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
 	"github.com/ElrondNetwork/elrond-go/marshal"
+	"github.com/ElrondNetwork/elrond-go/outport"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
@@ -197,7 +198,7 @@ func countMetaAcceptedSignedBlocks(
 }
 
 func indexRoundInfo(
-	indexerHandler process.Indexer,
+	outportHandler outport.OutportHandler,
 	nodesCoordinator sharding.NodesCoordinator,
 	shardId uint32,
 	header data.HeaderHandler,
@@ -213,7 +214,7 @@ func indexRoundInfo(
 	}
 
 	if check.IfNil(lastHeader) {
-		indexerHandler.SaveRoundsInfo([]*indexer.RoundInfo{roundInfo})
+		outportHandler.SaveRoundsInfo([]*indexer.RoundInfo{roundInfo})
 		return
 	}
 
@@ -245,11 +246,11 @@ func indexRoundInfo(
 		roundsInfo = append(roundsInfo, roundInfo)
 	}
 
-	indexerHandler.SaveRoundsInfo(roundsInfo)
+	outportHandler.SaveRoundsInfo(roundsInfo)
 }
 
 func indexValidatorsRating(
-	indexerHandler process.Indexer,
+	outportHandler outport.OutportHandler,
 	valStatProc process.ValidatorStatisticsProcessor,
 	metaBlock data.HeaderHandler,
 ) {
@@ -278,15 +279,15 @@ func indexValidatorsRating(
 		shardValidatorsRating[indexID] = validatorsInfos
 	}
 
-	indexShardValidatorsRating(indexerHandler, shardValidatorsRating)
+	indexShardValidatorsRating(outportHandler, shardValidatorsRating)
 }
 
 func indexShardValidatorsRating(
-	indexerHandler process.Indexer,
+	outportHandler outport.OutportHandler,
 	shardValidatorsRating map[string][]*indexer.ValidatorRatingInfo,
 ) {
 	for indexID, validatorsInfos := range shardValidatorsRating {
-		indexerHandler.SaveValidatorsRating(indexID, validatorsInfos)
+		outportHandler.SaveValidatorsRating(indexID, validatorsInfos)
 	}
 }
 

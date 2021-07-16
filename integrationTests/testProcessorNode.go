@@ -2870,7 +2870,7 @@ func GetDefaultNetworkComponents() *mock.NetworkComponentsStub {
 func GetDefaultStatusComponents() *mock.StatusComponentsStub {
 	return &mock.StatusComponentsStub{
 		TPSBench:             &testscommon.TpsBenchmarkMock{},
-		Indexer:              &mock.NilIndexer{},
+		Outport:              mock.NewNilOutport(),
 		SoftwareVersionCheck: &mock.SoftwareVersionCheckerMock{},
 		AppStatusHandler:     &mock.AppStatusHandlerStub{},
 	}

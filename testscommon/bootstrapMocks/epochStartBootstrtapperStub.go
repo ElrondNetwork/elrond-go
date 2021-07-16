@@ -20,7 +20,7 @@ func (esbs *EpochStartBootstrapperStub) GetTriesComponents() (state.TriesHolder,
 
 // Bootstrap -
 func (esbs *EpochStartBootstrapperStub) Bootstrap() (bootstrap.Parameters, error) {
-	if esbs.BootstrapCalled!=nil {
+	if esbs.BootstrapCalled != nil {
 		return esbs.BootstrapCalled()
 	}
 

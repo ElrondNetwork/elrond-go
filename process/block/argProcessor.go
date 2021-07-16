@@ -13,6 +13,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/dataRetriever"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
+	"github.com/ElrondNetwork/elrond-go/outport"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 )
@@ -40,7 +41,7 @@ type bootstrapComponentsHolder interface {
 }
 
 type statusComponentsHolder interface {
-	ElasticIndexer() process.Indexer
+	OutportHandler() outport.OutportHandler
 	TpsBenchmark() statistics.TPSBenchmark
 	IsInterfaceNil() bool
 }

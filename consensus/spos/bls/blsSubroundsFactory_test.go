@@ -11,6 +11,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/consensus/spos/bls"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
+	"github.com/ElrondNetwork/elrond-go/testscommon"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -546,8 +547,8 @@ func TestFactory_SetIndexerShouldWork(t *testing.T) {
 	container := mock.InitConsensusCore()
 	fct := *initFactoryWithContainer(container)
 
-	indexer := &mock.IndexerMock{}
-	fct.SetIndexer(indexer)
+	outportHandler := &testscommon.OutportStub{}
+	fct.SetOutportHandler(outportHandler)
 
-	assert.Equal(t, indexer, fct.Indexer())
+	assert.Equal(t, outportHandler, fct.Outport())
 }

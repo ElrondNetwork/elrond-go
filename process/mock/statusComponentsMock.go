@@ -2,18 +2,18 @@ package mock
 
 import (
 	"github.com/ElrondNetwork/elrond-go/core/statistics"
-	"github.com/ElrondNetwork/elrond-go/process"
+	"github.com/ElrondNetwork/elrond-go/outport"
 )
 
 // StatusComponentsMock -
 type StatusComponentsMock struct {
-	Indexer      process.Indexer
+	Outport      outport.OutportHandler
 	TPSBenchmark statistics.TPSBenchmark
 }
 
-// ElasticIndexer -
-func (scm *StatusComponentsMock) ElasticIndexer() process.Indexer {
-	return scm.Indexer
+// OutportHandler -
+func (scm *StatusComponentsMock) OutportHandler() outport.OutportHandler {
+	return scm.Outport
 }
 
 // TpsBenchmark -

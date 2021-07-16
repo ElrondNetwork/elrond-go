@@ -27,6 +27,8 @@ func TestConsensusComponents_Close_ShouldWork(t *testing.T) {
 	factory.PrintStack()
 
 	configs := factory.CreateDefaultConfig()
+	configs.ExternalConfig.ElasticSearchConnector.Enabled = false
+
 	chanStopNodeProcess := make(chan endProcess.ArgEndProcess)
 	nr, err := node.NewNodeRunner(configs)
 	require.Nil(t, err)
@@ -70,7 +72,6 @@ func TestConsensusComponents_Close_ShouldWork(t *testing.T) {
 		managedDataComponents,
 		managedStateComponents,
 		nodesCoordinator,
-		"",
 		false,
 	)
 	require.Nil(t, err)

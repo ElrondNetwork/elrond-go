@@ -3,24 +3,26 @@ package bls
 import (
 	"encoding/hex"
 	"fmt"
+	"sync"
 	"time"
 
-	elasticIndexer "github.com/ElrondNetwork/elastic-indexer-go"
 	"github.com/ElrondNetwork/elrond-go/consensus/spos"
 	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/core/check"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/indexer"
+	"github.com/ElrondNetwork/elrond-go/outport"
 )
 
 // subroundStartRound defines the data needed by the subround StartRound
 type subroundStartRound struct {
+	outportMutex sync.RWMutex
 	*spos.Subround
 	processingThresholdPercentage int
 	executeStoredMessages         func()
 	resetConsensusMessages        func()
 
-	indexer spos.ConsensusDataIndexer
+	outportHandler outport.OutportHandler
 }
 
 // NewSubroundStartRound creates a subroundStartRound object
@@ -43,7 +45,8 @@ func NewSubroundStartRound(
 		processingThresholdPercentage: processingThresholdPercentage,
 		executeStoredMessages:         executeStoredMessages,
 		resetConsensusMessages:        resetConsensusMessages,
-		indexer:                       elasticIndexer.NewNilIndexer(),
+		outportHandler:                outport.NewDisabledOutport(),
+		outportMutex:                  sync.RWMutex{},
 	}
 	srStartRound.Job = srStartRound.doStartRoundJob
 	srStartRound.Check = srStartRound.doStartRoundConsensusCheck
@@ -68,9 +71,11 @@ func checkNewSubroundStartRoundParams(
 	return err
 }
 
-// SetIndexer method set indexer
-func (sr *subroundStartRound) SetIndexer(indexer spos.ConsensusDataIndexer) {
-	sr.indexer = indexer
+// SetOutportHandler method set outport handler
+func (sr *subroundStartRound) SetOutportHandler(outportHandler outport.OutportHandler) {
+	sr.outportMutex.Lock()
+	sr.outportHandler = outportHandler
+	sr.outportMutex.Unlock()
 }
 
 // doStartRoundJob method does the job of the subround StartRound
@@ -197,7 +202,10 @@ func (sr *subroundStartRound) initCurrentRound() bool {
 }
 
 func (sr *subroundStartRound) indexRoundIfNeeded(pubKeys []string) {
-	if check.IfNil(sr.indexer) {
+	sr.outportMutex.RLock()
+	defer sr.outportMutex.RUnlock()
+
+	if check.IfNil(sr.outportHandler) || !sr.outportHandler.HasDrivers() {
 		return
 	}
 
@@ -240,7 +248,7 @@ func (sr *subroundStartRound) indexRoundIfNeeded(pubKeys []string) {
 		Timestamp:        time.Duration(sr.RoundTimeStamp.Unix()),
 	}
 
-	sr.indexer.SaveRoundsInfo([]*indexer.RoundInfo{roundInfo})
+	sr.outportHandler.SaveRoundsInfo([]*indexer.RoundInfo{roundInfo})
 }
 
 func (sr *subroundStartRound) generateNextConsensusGroup(roundIndex int64) error {

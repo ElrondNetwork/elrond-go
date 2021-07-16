@@ -22,7 +22,7 @@ type NodesSetupStub struct {
 	GetShardIDForPubKeyCalled                 func(pubkey []byte) (uint32, error)
 	InitialEligibleNodesPubKeysForShardCalled func(shardId uint32) ([]string, error)
 	InitialNodesPubKeysCalled                 func() map[uint32][]string
-	MinNumberOfNodesWithHysteresisCalled func() uint32
+	MinNumberOfNodesWithHysteresisCalled      func() uint32
 }
 
 // MinNumberOfShardNodes -

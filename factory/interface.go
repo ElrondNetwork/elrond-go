@@ -24,6 +24,7 @@ import (
 	heartbeatData "github.com/ElrondNetwork/elrond-go/heartbeat/data"
 	"github.com/ElrondNetwork/elrond-go/marshal"
 	"github.com/ElrondNetwork/elrond-go/ntp"
+	"github.com/ElrondNetwork/elrond-go/outport"
 	"github.com/ElrondNetwork/elrond-go/p2p"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/sharding"
@@ -280,7 +281,7 @@ type StateComponentsHolder interface {
 // StatusComponentsHolder holds the status components
 type StatusComponentsHolder interface {
 	TpsBenchmark() statistics.TPSBenchmark
-	ElasticIndexer() process.Indexer
+	OutportHandler() outport.OutportHandler
 	SoftwareVersionChecker() statistics.SoftwareVersionChecker
 	IsInterfaceNil() bool
 }

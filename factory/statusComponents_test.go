@@ -89,18 +89,17 @@ func TestNewStatusComponents_InvalidRoundDurationShouldErr(t *testing.T) {
 	stateComponents := getStateComponents(coreComponents, shardCoordinator)
 
 	statusArgs := factory.StatusComponentsFactoryArgs{
-		Config:               testscommon.GetGeneralConfig(),
-		ExternalConfig:       config.ExternalConfig{},
-		ShardCoordinator:     shardCoordinator,
-		NodesCoordinator:     &mock.NodesCoordinatorMock{},
-		EpochStartNotifier:   &mock.EpochStartNotifierStub{},
-		CoreComponents:       coreComponents,
-		DataComponents:       dataComponents,
-		NetworkComponents:    networkComponents,
-		StateComponents:      stateComponents,
-		IsInImportMode:       false,
-		EconomicsConfig:      config.EconomicsConfig{},
-		ElasticTemplatesPath: "",
+		Config:             testscommon.GetGeneralConfig(),
+		ExternalConfig:     config.ExternalConfig{},
+		ShardCoordinator:   shardCoordinator,
+		NodesCoordinator:   &mock.NodesCoordinatorMock{},
+		EpochStartNotifier: &mock.EpochStartNotifierStub{},
+		CoreComponents:     coreComponents,
+		DataComponents:     dataComponents,
+		NetworkComponents:  networkComponents,
+		StateComponents:    stateComponents,
+		IsInImportMode:     false,
+		EconomicsConfig:    config.EconomicsConfig{},
 	}
 	scf, err := factory.NewStatusComponentsFactory(statusArgs)
 	assert.Nil(t, err)
@@ -177,8 +176,6 @@ func getStatusComponents(
 		NetworkComponents:  networkComponents,
 		StateComponents:    stateComponents,
 		IsInImportMode:     false,
-
-		ElasticTemplatesPath: "../cmd/node/config/elasticIndexTemplates",
 	}
 
 	statusComponentsFactory, _ := factory.NewStatusComponentsFactory(statusArgs)
@@ -224,16 +221,15 @@ func getStatusComponentsFactoryArgsAndProcessComponents(shardCoordinator shardin
 				EnabledIndexes: []string{"transactions", "blocks"},
 			},
 		},
-		EconomicsConfig:      config.EconomicsConfig{},
-		ShardCoordinator:     mock.NewMultiShardsCoordinatorMock(2),
-		NodesCoordinator:     &mock.NodesCoordinatorMock{},
-		EpochStartNotifier:   &mock.EpochStartNotifierStub{},
-		CoreComponents:       coreComponents,
-		DataComponents:       dataComponents,
-		NetworkComponents:    networkComponents,
-		StateComponents:      stateComponents,
-		IsInImportMode:       false,
-		ElasticTemplatesPath: "../cmd/node/config/elasticIndexTemplates",
+		EconomicsConfig:    config.EconomicsConfig{},
+		ShardCoordinator:   mock.NewMultiShardsCoordinatorMock(2),
+		NodesCoordinator:   &mock.NodesCoordinatorMock{},
+		EpochStartNotifier: &mock.EpochStartNotifierStub{},
+		CoreComponents:     coreComponents,
+		DataComponents:     dataComponents,
+		NetworkComponents:  networkComponents,
+		StateComponents:    stateComponents,
+		IsInImportMode:     false,
 	}, processComponents
 }
 

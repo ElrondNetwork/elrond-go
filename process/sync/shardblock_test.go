@@ -189,7 +189,7 @@ func CreateShardBootstrapMockArguments() sync.ArgShardBootstrapper {
 		MiniblocksProvider:   &mock.MiniBlocksProviderStub{},
 		Uint64Converter:      &mock.Uint64ByteSliceConverterMock{},
 		AppStatusHandler:     &mock.AppStatusHandlerStub{},
-		Indexer:              &mock.IndexerMock{},
+		OutportHandler:       &testscommon.OutportStub{},
 		AccountsDBSyncer:     &mock.AccountsDBSyncerStub{},
 		CurrentEpochProvider: &testscommon.CurrentEpochProviderStub{},
 	}

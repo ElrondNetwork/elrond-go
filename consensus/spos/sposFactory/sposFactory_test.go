@@ -40,7 +40,7 @@ func TestGetSubroundsFactory_BlsNilConsensusCoreShouldErr(t *testing.T) {
 	consensusType := consensus.BlsConsensusType
 	statusHandler := &mock.AppStatusHandlerMock{}
 	chainID := []byte("chain-id")
-	indexer := &mock.IndexerMock{}
+	indexer := &testscommon.OutportStub{}
 	sf, err := sposFactory.GetSubroundsFactory(
 		nil,
 		&spos.ConsensusState{},
@@ -63,7 +63,7 @@ func TestGetSubroundsFactory_BlsNilStatusHandlerShouldErr(t *testing.T) {
 	worker := &mock.SposWorkerMock{}
 	consensusType := consensus.BlsConsensusType
 	chainID := []byte("chain-id")
-	indexer := &mock.IndexerMock{}
+	indexer := &testscommon.OutportStub{}
 	sf, err := sposFactory.GetSubroundsFactory(
 		consensusCore,
 		&spos.ConsensusState{},
@@ -87,7 +87,7 @@ func TestGetSubroundsFactory_BlsShouldWork(t *testing.T) {
 	consensusType := consensus.BlsConsensusType
 	statusHandler := &mock.AppStatusHandlerMock{}
 	chainID := []byte("chain-id")
-	indexer := &mock.IndexerMock{}
+	indexer := &testscommon.OutportStub{}
 	sf, err := sposFactory.GetSubroundsFactory(
 		consensusCore,
 		&spos.ConsensusState{},

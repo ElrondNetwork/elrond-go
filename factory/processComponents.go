@@ -707,7 +707,7 @@ func (pcf *processComponentsFactory) generateGenesisHeadersAndApplyInitialBalanc
 }
 
 func (pcf *processComponentsFactory) indexGenesisAccounts() error {
-	if pcf.statusComponents.ElasticIndexer().IsNilIndexer() {
+	if !pcf.statusComponents.OutportHandler().HasDrivers() {
 		return nil
 	}
 
@@ -732,7 +732,7 @@ func (pcf *processComponentsFactory) indexGenesisAccounts() error {
 		genesisAccounts = append(genesisAccounts, userAccount)
 	}
 
-	pcf.statusComponents.ElasticIndexer().SaveAccounts(uint64(pcf.coreData.GenesisNodesSetup().GetStartTime()), genesisAccounts)
+	pcf.statusComponents.OutportHandler().SaveAccounts(uint64(pcf.coreData.GenesisNodesSetup().GetStartTime()), genesisAccounts)
 	return nil
 }
 
@@ -819,7 +819,7 @@ func (pcf *processComponentsFactory) indexGenesisBlocks(genesisBlocks map[uint32
 		return err
 	}
 
-	if !pcf.statusComponents.ElasticIndexer().IsNilIndexer() {
+	if pcf.statusComponents.OutportHandler().HasDrivers() {
 		log.Info("indexGenesisBlocks(): indexer.SaveBlock", "hash", genesisBlockHash)
 
 		arg := &indexer.ArgsSaveBlockData{
@@ -827,7 +827,7 @@ func (pcf *processComponentsFactory) indexGenesisBlocks(genesisBlocks map[uint32
 			Body:       &dataBlock.Body{},
 			Header:     genesisBlockHeader,
 		}
-		pcf.statusComponents.ElasticIndexer().SaveBlock(arg)
+		pcf.statusComponents.OutportHandler().SaveBlock(arg)
 	}
 
 	// In "dblookupext" index, record both the metachain and the shardID blocks

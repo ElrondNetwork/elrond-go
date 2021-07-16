@@ -31,7 +31,7 @@ func (hbms *HeartbeatMonitorStub) GetHeartbeats() []heartbeatData.PubKeyHeartbea
 }
 
 // Cleanup -
-func (hbms *HeartbeatMonitorStub) Cleanup(){
+func (hbms *HeartbeatMonitorStub) Cleanup() {
 }
 
 // Close -

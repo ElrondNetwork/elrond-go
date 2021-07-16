@@ -149,8 +149,8 @@ var ErrNilEconomicsData = errors.New("nil economics data provided")
 // ErrNilEconomicsHandler signals that a nil economics handler has been provided
 var ErrNilEconomicsHandler = errors.New("nil economics handler")
 
-// ErrNilElasticIndexer signals that a nil elastic search indexer was provided
-var ErrNilElasticIndexer = errors.New("nil elastic search indexer")
+// ErrNilOutportHandler signals that a nil outport handler has been provided
+var ErrNilOutportHandler = errors.New("nil outport handler")
 
 // ErrNilEpochNotifier signals that a nil epoch notifier has been provided
 var ErrNilEpochNotifier = errors.New("nil epoch notifier")

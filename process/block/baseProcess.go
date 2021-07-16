@@ -22,6 +22,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/display"
 	"github.com/ElrondNetwork/elrond-go/hashing"
 	"github.com/ElrondNetwork/elrond-go/marshal"
+	"github.com/ElrondNetwork/elrond-go/outport"
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/process/block/bootstrapStorage"
 	"github.com/ElrondNetwork/elrond-go/sharding"
@@ -76,7 +77,7 @@ type baseProcessor struct {
 	blockProcessor         blockProcessor
 	txCounter              *transactionCounter
 
-	indexer            process.Indexer
+	outportHandler     outport.OutportHandler
 	tpsBenchmark       statistics.TPSBenchmark
 	historyRepo        dblookupext.HistoryRepository
 	epochNotifier      process.EpochNotifier
@@ -418,8 +419,8 @@ func checkProcessorNilParameters(arguments ArgBaseProcessor) error {
 	if check.IfNil(arguments.BlockSizeThrottler) {
 		return process.ErrNilBlockSizeThrottler
 	}
-	if check.IfNil(arguments.StatusComponents.ElasticIndexer()) {
-		return process.ErrNilIndexer
+	if check.IfNil(arguments.StatusComponents.OutportHandler()) {
+		return process.ErrNilOutportHandler
 	}
 	if check.IfNil(arguments.StatusComponents.TpsBenchmark()) {
 		return process.ErrNilTpsBenchmark

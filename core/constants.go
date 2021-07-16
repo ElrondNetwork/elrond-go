@@ -476,7 +476,7 @@ const (
 	ConsensusOrder
 	// NetworkShardingOrder defines the order in which the network sharding subsystem is notified of a start of epoch event
 	NetworkShardingOrder
-	// IndexerOrder defines the order in which Indexer is notified of a start of epoch event
+	// IndexerOrder defines the order in which indexer is notified of a start of epoch event
 	IndexerOrder
 	// NetStatisticsOrder defines the order in which netStatistic component is notified of a start of epoch event
 	NetStatisticsOrder

@@ -863,8 +863,8 @@ var ErrInterceptedDataNotForCurrentShard = errors.New("intercepted data not for 
 // ErrAccountNotPayable will be sent when trying to send money to a non-payable account
 var ErrAccountNotPayable = errors.New("sending value to non payable contract")
 
-// ErrNilIndexer signals that indexer is nil
-var ErrNilIndexer = errors.New("indexer is nil")
+// ErrNilOutportHandler signals that outport is nil
+var ErrNilOutportHandler = errors.New("outport handler is nil")
 
 // ErrNilTpsBenchmark signals that tps benchmark object is nil
 var ErrNilTpsBenchmark = errors.New("tps benchmark object is nil")

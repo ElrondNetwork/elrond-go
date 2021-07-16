@@ -309,7 +309,7 @@ func createComponentHolderMocks() (
 	}
 
 	statusComponents := &mock.StatusComponentsMock{
-		Indexer:      &mock.IndexerMock{},
+		Outport:      &testscommon.OutportStub{},
 		TPSBenchmark: &testscommon.TpsBenchmarkMock{},
 	}
 
