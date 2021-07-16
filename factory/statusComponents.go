@@ -17,6 +17,7 @@ import (
 	"github.com/ElrondNetwork/elrond-go/process"
 	"github.com/ElrondNetwork/elrond-go/sharding"
 	"github.com/ElrondNetwork/elrond-go/storage"
+	notifierFactory "github.com/ElrondNetwork/notifier-go/factory"
 )
 
 // TODO: move app status handler initialization here
@@ -191,8 +192,17 @@ func (pc *statusComponents) Close() error {
 // createElasticIndexer creates a new elasticIndexer where the server listens on the url,
 // authentication for the server is using the username and password
 func (scf *statusComponentsFactory) createOutportDriver() (outport.OutportHandler, error) {
+	outportFactoryArgs := &outportDriverFactory.OutportFactoryArgs{
+		ElasticIndexerFactoryArgs: scf.makeElasticIndexerArgs(),
+		EventNotifierFactoryArgs:  scf.makeEventNotifierArgs(),
+	}
+
+	return outportDriverFactory.CreateOutport(outportFactoryArgs)
+}
+
+func (scf *statusComponentsFactory) makeElasticIndexerArgs() *indexerFactory.ArgsIndexerFactory {
 	elasticSearchConfig := scf.externalConfig.ElasticSearchConnector
-	indexerFactoryArgs := &indexerFactory.ArgsIndexerFactory{
+	return &indexerFactory.ArgsIndexerFactory{
 		Enabled:                  elasticSearchConfig.Enabled,
 		IndexerCacheSize:         elasticSearchConfig.IndexerCacheSize,
 		ShardCoordinator:         scf.shardCoordinator,
@@ -212,8 +222,18 @@ func (scf *statusComponentsFactory) createOutportDriver() (outport.OutportHandle
 		UseKibana:                elasticSearchConfig.UseKibana,
 		IsInImportDBMode:         scf.isInImportMode,
 	}
+}
 
-	return outportDriverFactory.CreateOutport(indexerFactoryArgs)
+func (scf *statusComponentsFactory) makeEventNotifierArgs() *notifierFactory.EventNotifierFactoryArgs {
+	eventNotifierConfig := scf.externalConfig.EventNotifierConnector
+	return &notifierFactory.EventNotifierFactoryArgs{
+		Enabled:          eventNotifierConfig.Enabled,
+		UseAuthorization: eventNotifierConfig.UseAuthorization,
+		ProxyUrl:         eventNotifierConfig.ProxyUrl,
+		Username:         eventNotifierConfig.Username,
+		Password:         eventNotifierConfig.Password,
+		Marshalizer:      scf.coreComponents.InternalMarshalizer(),
+	}
 }
 
 func startStatisticsMonitor(

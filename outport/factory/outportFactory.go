@@ -3,10 +3,16 @@ package factory
 import (
 	indexerFactory "github.com/ElrondNetwork/elastic-indexer-go/factory"
 	"github.com/ElrondNetwork/elrond-go/outport"
+	notifierFactory "github.com/ElrondNetwork/notifier-go/factory"
 )
 
+type OutportFactoryArgs struct {
+	ElasticIndexerFactoryArgs *indexerFactory.ArgsIndexerFactory
+	EventNotifierFactoryArgs  *notifierFactory.EventNotifierFactoryArgs
+}
+
 // CreateOutport will create a new instance of OutportHandler
-func CreateOutport(args *indexerFactory.ArgsIndexerFactory) (outport.OutportHandler, error) {
+func CreateOutport(args *OutportFactoryArgs) (outport.OutportHandler, error) {
 	err := checkArguments(args)
 	if err != nil {
 		return nil, err
@@ -21,8 +27,13 @@ func CreateOutport(args *indexerFactory.ArgsIndexerFactory) (outport.OutportHand
 	return outportHandler, nil
 }
 
-func createAndSubscribeDrivers(outport outport.OutportHandler, args *indexerFactory.ArgsIndexerFactory) error {
-	err := createAndSubscribeElasticDriverIfNeeded(outport, args)
+func createAndSubscribeDrivers(outport outport.OutportHandler, args *OutportFactoryArgs) error {
+	err := createAndSubscribeElasticDriverIfNeeded(outport, args.ElasticIndexerFactoryArgs)
+	if err != nil {
+		return err
+	}
+
+	err = createAndSubscribeEventNotifierIfNeeded(outport, args.EventNotifierFactoryArgs)
 	if err != nil {
 		return err
 	}
@@ -46,9 +57,25 @@ func createAndSubscribeElasticDriverIfNeeded(
 	return outport.SubscribeDriver(elasticDriver)
 }
 
-func checkArguments(args *indexerFactory.ArgsIndexerFactory) error {
+func createAndSubscribeEventNotifierIfNeeded(
+	outport outport.OutportHandler,
+	args *notifierFactory.EventNotifierFactoryArgs,
+) error {
+	if !args.Enabled {
+		return nil
+	}
+
+	eventNotifier, err := notifierFactory.CreateEventNotifier(args)
+	if err != nil {
+		return err
+	}
+
+	return outport.SubscribeDriver(eventNotifier)
+}
+
+func checkArguments(args *OutportFactoryArgs) error {
 	if args == nil {
-		return outport.ErrNilArgsElasticDriverFactory
+		return outport.ErrNilArgsOutportFactory
 	}
 
 	return nil

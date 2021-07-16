@@ -13,3 +13,22 @@
     # EnabledIndexes represents a slice of indexes that will be enabled for indexing. Full list is:
     # ["tps", "rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory"]
     EnabledIndexes    = ["tps", "rating", "transactions", "blocks", "validators", "miniblocks", "rounds", "accounts", "accountshistory"]
+
+# EventNotifierConnector defines settings needed to configure and launch the event notifier component
+[EventNotifierConnector]
+    # Enabled signals whether the driver is enabled or not
+    Enabled = true
+
+    # UseAuthorization signals the proxy to use authorization
+    # Never run a production setup without authorization
+    UseAuthorization = false
+
+    # ProxyUrl is used to communicate with the subscriptions hub
+    # The indexer instance will broadcast data using ProxyUrl
+    ProxyUrl = "http://localhost:5000"
+
+    #
+    Username = ""
+
+    #
+    Password = ""

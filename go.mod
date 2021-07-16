@@ -9,6 +9,7 @@ require (
 	github.com/ElrondNetwork/elastic-indexer-go v1.0.7
 	github.com/ElrondNetwork/elrond-go-logger v1.0.4
 	github.com/ElrondNetwork/elrond-vm-common v1.1.0
+	github.com/ElrondNetwork/notifier-go v0.0.0-20210716105126-eb0419145a15
 	github.com/beevik/ntp v0.3.0
 	github.com/btcsuite/btcd v0.22.0-beta
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce
