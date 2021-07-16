@@ -33,14 +33,14 @@
     ProposerValidatorImportance = 1.0
     ProposerDecreaseFactor = -4.0
     ValidatorDecreaseFactor = -4.0
-    ConsecutiveMissedBlocksPenalty = 1.50
+    ConsecutiveMissedBlocksPenalty = 1.10
 
 [MetaChain.RatingSteps]
     HoursToMaxRatingFromStartRating = 55
     ProposerValidatorImportance = 1.0
     ProposerDecreaseFactor = -4.0
     ValidatorDecreaseFactor = -4.0
-    ConsecutiveMissedBlocksPenalty = 1.50
+    ConsecutiveMissedBlocksPenalty = 1.10
 
 [PeerHonesty]
     #this value will be multiplied with the current value for a public key each DecayUpdateIntervalInSeconds seconds
