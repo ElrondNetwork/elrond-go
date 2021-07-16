@@ -3,6 +3,7 @@ package trie
 import (
 	"testing"
 
+	"github.com/ElrondNetwork/elrond-go/core"
 	"github.com/ElrondNetwork/elrond-go/data"
 	"github.com/ElrondNetwork/elrond-go/data/mock"
 	"github.com/stretchr/testify/assert"
@@ -24,18 +25,36 @@ func TestNewTrieStorageManagerWithoutPruning(t *testing.T) {
 	assert.NotNil(t, ts)
 }
 
-func TestTrieStorageManagerWithoutPruning_TakeSnapshotShouldNotPanic(t *testing.T) {
+func TestTrieStorageManagerWithoutPruning_TakeSnapshotShouldWork(t *testing.T) {
 	t.Parallel()
 
 	ts, _ := NewTrieStorageManagerWithoutPruning(mock.NewMemDbMock())
 	ts.TakeSnapshot([]byte{}, true, nil)
+
+	chLeaves := make(chan core.KeyValueHolder)
+	ts.TakeSnapshot([]byte("rootHash"), true, chLeaves)
+
+	select {
+	case <-chLeaves:
+	default:
+		assert.Fail(t, "unclosed channel")
+	}
 }
 
-func TestTrieStorageManagerWithoutPruning_SetCheckpointShouldNotPanic(t *testing.T) {
+func TestTrieStorageManagerWithoutPruning_SetCheckpointShouldWork(t *testing.T) {
 	t.Parallel()
 
 	ts, _ := NewTrieStorageManagerWithoutPruning(mock.NewMemDbMock())
 	ts.SetCheckpoint([]byte{}, nil)
+
+	chLeaves := make(chan core.KeyValueHolder)
+	ts.SetCheckpoint([]byte("rootHash"), chLeaves)
+
+	select {
+	case <-chLeaves:
+	default:
+		assert.Fail(t, "unclosed channel")
+	}
 }
 
 func TestTrieStorageManagerWithoutPruning_IsPruningEnabled(t *testing.T) {

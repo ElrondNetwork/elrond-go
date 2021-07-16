@@ -23,7 +23,11 @@ func NewTrieStorageManagerWithoutCheckpoints(args NewTrieStorageManagerArgs) (*t
 }
 
 // SetCheckpoint does nothing if pruning is disabled
-func (tsm *trieStorageManagerWithoutCheckpoints) SetCheckpoint(_ []byte, _ chan core.KeyValueHolder) {
+func (tsm *trieStorageManagerWithoutCheckpoints) SetCheckpoint(_ []byte, chLeaves chan core.KeyValueHolder) {
+	if chLeaves != nil {
+		close(chLeaves)
+	}
+
 	log.Debug("trieStorageManagerWithoutCheckpoints - SetCheckpoint is disabled")
 }
 

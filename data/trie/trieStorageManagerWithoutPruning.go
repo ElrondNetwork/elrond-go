@@ -21,12 +21,20 @@ func NewTrieStorageManagerWithoutPruning(db data.DBWriteCacher) (*trieStorageMan
 }
 
 // TakeSnapshot does nothing if pruning is disabled
-func (tsm *trieStorageManagerWithoutPruning) TakeSnapshot(_ []byte, _ bool, _ chan core.KeyValueHolder) {
+func (tsm *trieStorageManagerWithoutPruning) TakeSnapshot(_ []byte, _ bool, chLeaves chan core.KeyValueHolder) {
+	if chLeaves != nil {
+		close(chLeaves)
+	}
+
 	log.Trace("trieStorageManagerWithoutPruning - TakeSnapshot:trie storage pruning is disabled")
 }
 
 // SetCheckpoint does nothing if pruning is disabled
-func (tsm *trieStorageManagerWithoutPruning) SetCheckpoint(_ []byte, _ chan core.KeyValueHolder) {
+func (tsm *trieStorageManagerWithoutPruning) SetCheckpoint(_ []byte, chLeaves chan core.KeyValueHolder) {
+	if chLeaves != nil {
+		close(chLeaves)
+	}
+
 	log.Trace("trieStorageManagerWithoutPruning - SetCheckpoint:trie storage pruning is disabled")
 }
 

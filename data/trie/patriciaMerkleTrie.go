@@ -558,7 +558,7 @@ func logArrayWithTrace(message string, paramName string, hashes [][]byte) {
 func logMapWithTrace(message string, paramName string, hashes data.ModifiedHashes) {
 	if log.GetLevel() == logger.LogTrace {
 		for key := range hashes {
-			log.Trace(message, paramName, key)
+			log.Trace(message, paramName, []byte(key))
 		}
 	}
 }
@@ -582,15 +582,15 @@ func (tr *patriciaMerkleTrie) GetProof(key []byte) ([][]byte, error) {
 	}
 
 	for {
-		encodedNode, err := currentNode.getEncodedNode()
-		if err != nil {
-			return nil, err
+		encodedNode, errGet := currentNode.getEncodedNode()
+		if errGet != nil {
+			return nil, errGet
 		}
 		proof = append(proof, encodedNode)
 
-		currentNode, hexKey, err = currentNode.getNext(hexKey, tr.trieStorage.Database())
-		if err != nil {
-			return nil, err
+		currentNode, hexKey, errGet = currentNode.getNext(hexKey, tr.trieStorage.Database())
+		if errGet != nil {
+			return nil, errGet
 		}
 
 		if currentNode == nil {
@@ -620,9 +620,9 @@ func (tr *patriciaMerkleTrie) VerifyProof(key []byte, proof [][]byte) (bool, err
 			return false, nil
 		}
 
-		n, err := decodeNode(encodedNode, tr.marshalizer, tr.hasher)
-		if err != nil {
-			return false, err
+		n, errDecode := decodeNode(encodedNode, tr.marshalizer, tr.hasher)
+		if errDecode != nil {
+			return false, errDecode
 		}
 
 		var proofVerified bool
