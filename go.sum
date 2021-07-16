@@ -45,8 +45,9 @@ github.com/ElrondNetwork/elastic-indexer-go v1.0.2-0.20210305124948-8191d92dc7fe
 github.com/ElrondNetwork/elastic-indexer-go v1.0.2-0.20210308132434-93aea699e448/go.mod h1:xYFnPexpAxxLjDiZRxLqZveHsc5bnyngJitBgI2JrfM=
 github.com/ElrondNetwork/elastic-indexer-go v1.0.3/go.mod h1:Jj5loOE5jRz1E5jn1yeH+M/0kQmsWFDONRaXG3WADLw=
 github.com/ElrondNetwork/elastic-indexer-go v1.0.4/go.mod h1:ipmcRwU+D5yQu5/9NGzOWhHz+C54XunQa9XVxQJKONQ=
-github.com/ElrondNetwork/elastic-indexer-go v1.0.7 h1:hv3KtP/RMbsxaBT00oHdDeFohDEensucwFpgd2KP2WU=
-github.com/ElrondNetwork/elastic-indexer-go v1.0.7/go.mod h1:LGytPmms9t0ERu+XlmjyIidQb3u1bXumQ89NzDC/i58=
+github.com/ElrondNetwork/elastic-indexer-go v1.0.7-0.20210625103944-3515df0722c5/go.mod h1:LGytPmms9t0ERu+XlmjyIidQb3u1bXumQ89NzDC/i58=
+github.com/ElrondNetwork/elastic-indexer-go v1.1.2 h1:Zd8AcGXBKkIHQ4jbfLJ4Eei40VoEUqUIoHRvhk2S9eI=
+github.com/ElrondNetwork/elastic-indexer-go v1.1.2/go.mod h1:JwlHmTFyHsd9eoZLYcjl610W+8m4meJZfoXzO5Uhg6U=
 github.com/ElrondNetwork/elrond-go v1.1.0/go.mod h1:R5HRN9NnnJ0gRd4QogmbUbQNTEczLsFCtfIgd3+3cYY=
 github.com/ElrondNetwork/elrond-go v1.1.6-0.20201113091116-de0c9a4e63c6/go.mod h1:dUNMqGg/jqTgHbnNxAmW7WkApWXlCQ8brVPbwIEFghI=
 github.com/ElrondNetwork/elrond-go v1.1.6-0.20201113120119-5f3406f2d6b5/go.mod h1:JsrmzX05L/GHE/nOeQuJCKHasJnZN2WMFr+Y6jjvHGg=
@@ -69,6 +70,7 @@ github.com/ElrondNetwork/elrond-go v1.1.38-0.20210322140841-6a27c533e8a5/go.mod 
 github.com/ElrondNetwork/elrond-go v1.1.42/go.mod h1:mxhdRRV7PY+IHzznJ3MnX5/2YSMNxl2znD6f6Y8nuCM=
 github.com/ElrondNetwork/elrond-go v1.1.51/go.mod h1:0gT8uLRXSqmKDrrn55aXTSca0XGpg8aszx+Q5OPMNpY=
 github.com/ElrondNetwork/elrond-go v1.1.59-0.20210526130950-2a93e2e11c39/go.mod h1:0aZfahOLX4vO+1D6Ejx8XwOLTzd7pfcx94xzAOpt2bs=
+github.com/ElrondNetwork/elrond-go v1.2.4-0.20210701140353-fb591fb0f9ae/go.mod h1:iHEiztnu0ME6lraclqaomK/LU8KD0sAEcKIVj6eLx8g=
 github.com/ElrondNetwork/elrond-go-logger v1.0.2/go.mod h1:e5D+c97lKUfFdAzFX7rrI2Igl/z4Y0RkKYKWyzprTGk=
 github.com/ElrondNetwork/elrond-go-logger v1.0.4 h1:i5Yu4qyjTZDwvBY/ykbNpp2SP9jxwk/QTivRwSZSTAQ=
 github.com/ElrondNetwork/elrond-go-logger v1.0.4/go.mod h1:e5D+c97lKUfFdAzFX7rrI2Igl/z4Y0RkKYKWyzprTGk=
