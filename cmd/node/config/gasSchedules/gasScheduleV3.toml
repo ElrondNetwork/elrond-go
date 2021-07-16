@@ -30,11 +30,11 @@
     ValidatorToDelegation = 500000000
     ESDTIssue             = 50000000
     ESDTOperations        = 50000000
-    Proposal              = 50000000
-    Vote                  = 50000000
-    DelegateVote          = 50000000
-    RevokeVote            = 50000000
-    CloseProposal         = 50000000
+    Proposal              = 5000000
+    Vote                  = 500000
+    DelegateVote          = 1000000
+    RevokeVote            = 500000
+    CloseProposal         = 1000000
     GetAllNodeStates      = 20000000
     UnstakeTokens         = 5000000
     UnbondTokens          = 5000000
