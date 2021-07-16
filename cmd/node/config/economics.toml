@@ -23,17 +23,17 @@
     LeaderPercentage = 0.1 #fraction of value 0.1 - 10%
     DeveloperPercentage = 0.3 #fraction of value 0.3 - 30%
     ProtocolSustainabilityPercentage = 0.1 #fraction of value 0.1 - 10%
-    ProtocolSustainabilityAddress = "erd1j25xk97yf820rgdp3mj5scavhjkn6tjyn0t63pmv5qyjj7wxlcfqqe2rw5"
-    TopUpGradientPoint = "3000000000000000000000000" # 3MIL eGLD (eligible topUp)
+    ProtocolSustainabilityAddress = "erd1w7gvqs02kq3p05vsp9r5fh7ezk8tjqavuzzy3u4h2ym3ay9y8u4s9jhxes"
+    TopUpGradientPoint = "3000000000000000000000000" # 3MIL eGLD
     TopUpFactor = 0.25 # fraction of value 0.25 - 25%
 
     [[RewardsSettings.RewardsConfigByEpoch]]
-    EpochEnable = 1
+    EpochEnable = 3
     LeaderPercentage = 0.1 #fraction of value 0.1 - 10%
     DeveloperPercentage = 0.3 #fraction of value 0.3 - 30%
     ProtocolSustainabilityPercentage = 0.1 #fraction of value 0.1 - 10%
-    ProtocolSustainabilityAddress = "erd1j25xk97yf820rgdp3mj5scavhjkn6tjyn0t63pmv5qyjj7wxlcfqqe2rw5"
-    TopUpGradientPoint = "2000000000000000000000000" # 2MIL eGLD (eligible topUp)
+    ProtocolSustainabilityAddress = "erd1w7gvqs02kq3p05vsp9r5fh7ezk8tjqavuzzy3u4h2ym3ay9y8u4s9jhxes"
+    TopUpGradientPoint = "2000000000000000000000000" # 2MIL eGLD
     TopUpFactor = 0.5 # fraction of value 0.5 - 50%
 
 [FeeSettings]

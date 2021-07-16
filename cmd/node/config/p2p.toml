@@ -46,7 +46,7 @@
 
     #ProtocolID represents the protocol that this node will advertize to other peers
     #To connect to other nodes, those nodes should have the same ProtocolID string
-    ProtocolID = "/erd/kad/1.0.0"
+    ProtocolID = "/erd/kad/0.2.0"
 
     #InitialPeerList represents the list of strings of some known nodes that will bootstrap this node
     #The address will be in a self-describing addressing format.
@@ -58,7 +58,10 @@
     #
     #If the initial peers list is left empty, the node will not try to connect to other peers during initial bootstrap
     #phase but will accept connections and will do the network discovery if another peer connects to it
-    InitialPeerList = ["/ip4/127.0.0.1/tcp/9999/p2p/16Uiu2HAkw5SNNtSvH1zJiQ6Gc3WoGNSxiyNueRKe6fuAuh57G3Bk"]
+    InitialPeerList = [
+        "/ip4/134.209.81.131/tcp/10000/p2p/16Uiu2HAmDC2JsSEzU8BDV2noxqrsCrvnje1DsESRGbWNyJzqjA8f",
+        "/ip4/159.65.194.151/tcp/10000/p2p/16Uiu2HAmSmv37zB682cLXnwm8TDrZGxRgnK1qrn4q3FaRa8vJnkJ",
+    ]
 
     #kademlia's routing table bucket size
     BucketSize = 100
@@ -68,12 +71,12 @@
 
 [Sharding]
     # The targeted number of peer connections
-    TargetPeerCount = 36
-    MaxIntraShardValidators = 12
-    MaxCrossShardValidators = 8
-    MaxIntraShardObservers = 2
-    MaxCrossShardObservers = 1
-    MaxFullHistoryObservers = 10
+    TargetPeerCount = 75
+    MaxIntraShardValidators = 25
+    MaxCrossShardValidators = 15
+    MaxIntraShardObservers = 15
+    MaxCrossShardObservers = 15
+    MaxFullHistoryObservers = 0
     MaxSeeders = 2
     #available options:
     #  `ListsSharder` will split the peers based on the shard membership (intra, cross or unknown)

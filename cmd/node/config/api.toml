@@ -103,11 +103,11 @@
 
         # /network/direct-staked-info will return a list containing direct staked list of addresses
         # and their staked values
-        {Name = "/direct-staked-info", Open = true},
+        {Name = "/direct-staked-info", Open = false},
 
         # /network/delegated-info will return a list containing delegated list of addresses
         # and their staked values on the system delegation smart contracts
-        {Name = "/delegated-info", Open = true}
+        {Name = "/delegated-info", Open = false}
 	]
 
 [APIPackages.log]

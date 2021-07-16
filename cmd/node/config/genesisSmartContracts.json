@@ -1,6 +1,6 @@
 [
   {
-    "owner": "erd1vxy22x0fj4zv6hktmydg8vpfh6euv02cz4yg0aaws6rrad5a5awqgqky80",
+    "owner": "erd164k93yduvlxxus7ls5a49cckxq8k58cars07yl9ft47wyqwd3wvqfuecw3",
     "filename": "./config/genesisContracts/delegation.wasm",
     "vm-type": "0500",
     "init-parameters": "%validator_sc_address%@03E8@00@030D40@030D40",
@@ -8,7 +8,7 @@
     "version": "0.4.*"
   },
   {
-    "owner": "erd188anxz35atlef7cucszypmvx88lhz4m7a7t7lhcwt6sfphpsqlkswfhcx2",
+    "owner": "erd16mndckejta5drs3v9qde7zfmc0mtfzmkkeqkpldq77wcvz95d5as6eallp",
     "filename": "./config/genesisContracts/dns.wasm",
     "vm-type": "0500",
     "init-parameters": "056bc75e2d63100000",
