@@ -127,6 +127,11 @@ func (pcf *processComponentsFactory) newShardBlockProcessor(
 		ConfigSCStorage:    pcf.config.SmartContractsStorage,
 	}
 
+	esdtTransferParser, err := parsers.NewESDTTransferParser(pcf.coreData.InternalMarshalizer())
+	if err != nil {
+		return nil, err
+	}
+
 	argsNewVMFactory := shard.ArgVMContainerFactory{
 		Config:                         pcf.config.VirtualMachine.Execution,
 		BlockGasLimit:                  pcf.coreData.EconomicsData().MaxGasLimitPerBlock(pcf.bootstrapComponents.ShardCoordinator().SelfId()),
@@ -137,6 +142,7 @@ func (pcf *processComponentsFactory) newShardBlockProcessor(
 		AheadOfTimeGasUsageEnableEpoch: pcf.epochConfig.EnableEpochs.AheadOfTimeGasUsageEnableEpoch,
 		ArwenV3EnableEpoch:             pcf.epochConfig.EnableEpochs.RepairCallbackEnableEpoch,
 		ArwenChangeLocker:              arwenChangeLocker,
+		ESDTTransferParser:             esdtTransferParser,
 	}
 	log.Debug("blockProcessorCreator: enable epoch for sc deploy", "epoch", argsNewVMFactory.DeployEnableEpoch)
 	log.Debug("blockProcessorCreator: enable epoch for ahead of time gas usage", "epoch", argsNewVMFactory.AheadOfTimeGasUsageEnableEpoch)
@@ -186,11 +192,6 @@ func (pcf *processComponentsFactory) newShardBlockProcessor(
 	}
 
 	badTxInterim, err := interimProcContainer.Get(dataBlock.InvalidBlock)
-	if err != nil {
-		return nil, err
-	}
-
-	esdtTransferParser, err := parsers.NewESDTTransferParser(pcf.coreData.InternalMarshalizer())
 	if err != nil {
 		return nil, err
 	}

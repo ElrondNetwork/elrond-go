@@ -280,6 +280,10 @@ func createScQueryElement(
 		}
 	} else {
 		queryVirtualMachineConfig := args.generalConfig.VirtualMachine.Querying.VirtualMachineConfig
+		esdtTransferParser, errParser := parsers.NewESDTTransferParser(args.coreComponents.InternalMarshalizer())
+		if errParser != nil {
+			return nil, err
+		}
 		argsNewVMFactory := shard.ArgVMContainerFactory{
 			Config:                         queryVirtualMachineConfig,
 			BlockGasLimit:                  args.coreComponents.EconomicsData().MaxGasLimitPerBlock(args.processComponents.ShardCoordinator().SelfId()),
@@ -290,6 +294,7 @@ func createScQueryElement(
 			AheadOfTimeGasUsageEnableEpoch: args.epochConfig.EnableEpochs.AheadOfTimeGasUsageEnableEpoch,
 			ArwenV3EnableEpoch:             args.epochConfig.EnableEpochs.RepairCallbackEnableEpoch,
 			ArwenChangeLocker:              args.processComponents.ArwenChangeLocker(),
+			ESDTTransferParser:             esdtTransferParser,
 		}
 
 		log.Debug("apiResolver: enable epoch for sc deploy", "epoch", args.epochConfig.EnableEpochs.SCDeployEnableEpoch)

@@ -611,6 +611,7 @@
         ArwenVersions = [
             { StartEpoch = 0, Version = "v1.2" },
             { StartEpoch = 1, Version = "v1.3" },
+            { StartEpoch = 5, Version = "v1.4" },
         ]
 
     [VirtualMachine.Querying]
@@ -618,6 +619,7 @@
         ArwenVersions = [
             { StartEpoch = 0, Version = "v1.2" },
             { StartEpoch = 1, Version = "v1.3" },
+            { StartEpoch = 5, Version = "v1.4" },
         ]
 
 [Hardfork]

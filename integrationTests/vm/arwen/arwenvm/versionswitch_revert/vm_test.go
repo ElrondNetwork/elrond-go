@@ -28,6 +28,9 @@ func TestSCExecutionWithVMVersionSwitchingEpochRevert(t *testing.T) {
 			{StartEpoch: 4, Version: "v1.3"},
 			{StartEpoch: 5, Version: "v1.2"},
 			{StartEpoch: 6, Version: "v1.2"},
+			{StartEpoch: 7, Version: "v1.4"},
+			{StartEpoch: 8, Version: "v1.3"},
+			{StartEpoch: 9, Version: "v1.4"},
 		},
 	}
 
