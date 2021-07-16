@@ -8,6 +8,7 @@ import (
 	errErd "github.com/ElrondNetwork/elrond-go/errors"
 	"github.com/ElrondNetwork/elrond-go/factory"
 	"github.com/ElrondNetwork/elrond-go/factory/mock"
+	"github.com/ElrondNetwork/elrond-go/p2p"
 	"github.com/ElrondNetwork/elrond-go/p2p/libp2p"
 	"github.com/stretchr/testify/require"
 )
@@ -94,8 +95,11 @@ func getNetworkArgs() factory.NetworkComponentsFactoryArgs {
 			MaxCrossShardValidators: 10,
 			MaxIntraShardObservers:  10,
 			MaxCrossShardObservers:  10,
-			MaxFullHistoryObservers: 10,
+			MaxSeeders:              2,
 			Type:                    "NilListSharder",
+			AdditionalConnections: config.AdditionalConnectionsConfig{
+				MaxFullHistoryObservers: 10,
+			},
 		},
 	}
 
@@ -134,6 +138,7 @@ func getNetworkArgs() factory.NetworkComponentsFactoryArgs {
 				UnitValue:                    1.0,
 			},
 		},
-		Syncer: &libp2p.LocalSyncTimer{},
+		Syncer:            &libp2p.LocalSyncTimer{},
+		NodeOperationMode: p2p.NormalOperation,
 	}
 }

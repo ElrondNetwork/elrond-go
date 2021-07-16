@@ -443,10 +443,11 @@ func TestP2pConfig(t *testing.T) {
     MaxCrossShardValidators = 0
     MaxIntraShardObservers = 0
     MaxCrossShardObservers = 0
-    MaxFullHistoryObservers = 0
     MaxSeeders = 0
     Type = "` + shardingType + `"
-`
+    [AdditionalConnections]
+        MaxFullHistoryObservers = 0`
+
 	expectedCfg := P2PConfig{
 		Node: NodeConfig{
 			Port: port,

@@ -3,6 +3,7 @@ package factory
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/ElrondNetwork/elrond-go/config"
@@ -16,28 +17,45 @@ import (
 
 func createMockArg() ArgsSharderFactory {
 	return ArgsSharderFactory{
-		Type:                 "unknown",
+
 		PeerShardResolver:    &mock.PeerShardResolverStub{},
 		Pid:                  "",
 		PreferredPeersHolder: &p2pmocks.PeersHolderStub{},
 		P2pConfig: config.P2PConfig{
 			Sharding: config.ShardingConfig{
+				Type:                    "unknown",
 				TargetPeerCount:         6,
 				MaxIntraShardValidators: 1,
 				MaxCrossShardValidators: 1,
 				MaxIntraShardObservers:  1,
 				MaxCrossShardObservers:  1,
-				MaxFullHistoryObservers: 1,
+				AdditionalConnections: config.AdditionalConnectionsConfig{
+					MaxFullHistoryObservers: 1,
+				},
 			},
 		},
+		NodeOperationMode: p2p.NormalOperation,
 	}
+}
+
+func TestNewSharder_CreateListsSharderUnknownNodeOperationShouldError(t *testing.T) {
+	t.Parallel()
+
+	arg := createMockArg()
+	arg.P2pConfig.Sharding.Type = p2p.ListsSharder
+	arg.NodeOperationMode = ""
+	sharder, err := NewSharder(arg)
+
+	assert.True(t, errors.Is(err, p2p.ErrInvalidValue))
+	assert.True(t, strings.Contains(err.Error(), "unknown node operation mode"))
+	assert.True(t, check.IfNil(sharder))
 }
 
 func TestNewSharder_CreateListsSharderShouldWork(t *testing.T) {
 	t.Parallel()
 
 	arg := createMockArg()
-	arg.Type = p2p.ListsSharder
+	arg.P2pConfig.Sharding.Type = p2p.ListsSharder
 	sharder, err := NewSharder(arg)
 	maxPeerCount := uint32(5)
 	maxValidators := uint32(1)
@@ -66,7 +84,7 @@ func TestNewSharder_CreateOneListSharderShouldWork(t *testing.T) {
 	t.Parallel()
 
 	arg := createMockArg()
-	arg.Type = p2p.OneListSharder
+	arg.P2pConfig.Sharding.Type = p2p.OneListSharder
 	sharder, err := NewSharder(arg)
 	maxPeerCount := 2
 
@@ -79,7 +97,7 @@ func TestNewSharder_CreateNilListSharderShouldWork(t *testing.T) {
 	t.Parallel()
 
 	arg := createMockArg()
-	arg.Type = p2p.NilListSharder
+	arg.P2pConfig.Sharding.Type = p2p.NilListSharder
 	sharder, err := NewSharder(arg)
 
 	expectedSharder := networksharding.NewNilListSharder()

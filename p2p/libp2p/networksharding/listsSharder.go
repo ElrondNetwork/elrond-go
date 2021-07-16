@@ -79,6 +79,7 @@ type ArgListsSharder struct {
 	SelfPeerId           peer.ID
 	P2pConfig            config.P2PConfig
 	PreferredPeersHolder p2p.PreferredPeersHolderHandler
+	NodeOperationMode    p2p.NodeOperation
 }
 
 // listsSharder is the struct able to compute an eviction list of connected peers id according to the
@@ -103,6 +104,17 @@ type listsSharder struct {
 	preferredPeersHolder    p2p.PreferredPeersHolderHandler
 }
 
+type peersConnections struct {
+	maxPeerCount         int
+	intraShardValidators int
+	crossShardValidators int
+	intraShardObservers  int
+	crossShardObservers  int
+	seeders              int
+	fullHistoryObservers int
+	unknown              int
+}
+
 // NewListsSharder creates a new kad list based kad sharder instance
 func NewListsSharder(arg ArgListsSharder) (*listsSharder, error) {
 	if check.IfNil(arg.PeerResolver) {
@@ -123,37 +135,61 @@ func NewListsSharder(arg ArgListsSharder) (*listsSharder, error) {
 	if arg.P2pConfig.Sharding.MaxCrossShardObservers < minAllowedObservers {
 		return nil, fmt.Errorf("%w, maxCrossShardObservers should be at least %d", p2p.ErrInvalidValue, minAllowedObservers)
 	}
-	if arg.P2pConfig.Sharding.MaxCrossShardObservers+arg.P2pConfig.Sharding.MaxIntraShardObservers+arg.P2pConfig.Sharding.MaxFullHistoryObservers == 0 {
-		log.Warn("no connections to observers are possible")
-	}
 	if check.IfNil(arg.PreferredPeersHolder) {
 		return nil, fmt.Errorf("%w while creating a new listsShared", p2p.ErrNilPreferredPeersHolder)
 	}
-
-	providedPeers := arg.P2pConfig.Sharding.MaxIntraShardValidators + arg.P2pConfig.Sharding.MaxCrossShardValidators +
-		arg.P2pConfig.Sharding.MaxIntraShardObservers + arg.P2pConfig.Sharding.MaxCrossShardObservers +
-		arg.P2pConfig.Sharding.MaxSeeders + arg.P2pConfig.Sharding.MaxFullHistoryObservers
-	if providedPeers+minUnknownPeers > arg.P2pConfig.Sharding.TargetPeerCount {
-		return nil, fmt.Errorf("%w, maxValidators + maxObservers should be less than %d", p2p.ErrInvalidValue, arg.P2pConfig.Sharding.TargetPeerCount)
+	peersConn, err := processNumConnections(arg)
+	if err != nil {
+		return nil, err
 	}
 
 	ls := &listsSharder{
 		peerShardResolver:       arg.PeerResolver,
 		selfPeerId:              arg.SelfPeerId,
-		maxPeerCount:            int(arg.P2pConfig.Sharding.TargetPeerCount),
+		maxPeerCount:            peersConn.maxPeerCount,
 		computeDistance:         computeDistanceByCountingBits,
-		maxIntraShardValidators: int(arg.P2pConfig.Sharding.MaxIntraShardValidators),
-		maxCrossShardValidators: int(arg.P2pConfig.Sharding.MaxCrossShardValidators),
-		maxIntraShardObservers:  int(arg.P2pConfig.Sharding.MaxIntraShardObservers),
-		maxCrossShardObservers:  int(arg.P2pConfig.Sharding.MaxCrossShardObservers),
-		maxSeeders:              int(arg.P2pConfig.Sharding.MaxSeeders),
-		maxFullHistoryObservers: int(arg.P2pConfig.Sharding.MaxFullHistoryObservers),
+		maxIntraShardValidators: peersConn.intraShardValidators,
+		maxCrossShardValidators: peersConn.crossShardValidators,
+		maxIntraShardObservers:  peersConn.intraShardObservers,
+		maxCrossShardObservers:  peersConn.crossShardObservers,
+		maxSeeders:              peersConn.seeders,
+		maxFullHistoryObservers: peersConn.fullHistoryObservers,
+		maxUnknown:              peersConn.unknown,
 		preferredPeersHolder:    arg.PreferredPeersHolder,
 	}
 
-	ls.maxUnknown = int(arg.P2pConfig.Sharding.TargetPeerCount - providedPeers)
-
 	return ls, nil
+}
+
+func processNumConnections(arg ArgListsSharder) (peersConnections, error) {
+	peersConn := peersConnections{
+		maxPeerCount:         int(arg.P2pConfig.Sharding.TargetPeerCount),
+		intraShardValidators: int(arg.P2pConfig.Sharding.MaxIntraShardValidators),
+		crossShardValidators: int(arg.P2pConfig.Sharding.MaxCrossShardValidators),
+		intraShardObservers:  int(arg.P2pConfig.Sharding.MaxIntraShardObservers),
+		crossShardObservers:  int(arg.P2pConfig.Sharding.MaxCrossShardObservers),
+		seeders:              int(arg.P2pConfig.Sharding.MaxSeeders),
+		fullHistoryObservers: 0,
+	}
+	if arg.NodeOperationMode == p2p.FullArchiveMode {
+		peersConn.fullHistoryObservers = int(arg.P2pConfig.Sharding.AdditionalConnections.MaxFullHistoryObservers)
+		peersConn.maxPeerCount += peersConn.fullHistoryObservers
+	}
+
+	if peersConn.crossShardObservers+peersConn.intraShardObservers+peersConn.fullHistoryObservers == 0 {
+		log.Warn("No connections to observers are possible. This is NOT a recommended setting!")
+	}
+
+	providedPeers := peersConn.intraShardValidators + peersConn.crossShardValidators +
+		peersConn.intraShardObservers + peersConn.crossShardObservers +
+		peersConn.seeders + peersConn.fullHistoryObservers
+	if providedPeers+minUnknownPeers > peersConn.maxPeerCount {
+		return peersConnections{}, fmt.Errorf("%w, maxValidators + maxObservers + seeders + full archive nodes should be less than %d", p2p.ErrInvalidValue, peersConn.maxPeerCount)
+	}
+
+	peersConn.unknown = peersConn.maxPeerCount - providedPeers
+
+	return peersConn, nil
 }
 
 // ComputeEvictionList returns the eviction list

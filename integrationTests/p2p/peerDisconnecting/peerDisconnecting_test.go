@@ -9,10 +9,12 @@ import (
 	"github.com/ElrondNetwork/elrond-go/integrationTests"
 	"github.com/ElrondNetwork/elrond-go/p2p"
 	"github.com/ElrondNetwork/elrond-go/p2p/libp2p"
+	"github.com/ElrondNetwork/elrond-go/testscommon"
 	"github.com/ElrondNetwork/elrond-go/testscommon/p2pmocks"
 	"github.com/libp2p/go-libp2p-core/peer"
 	mocknet "github.com/libp2p/go-libp2p/p2p/net/mock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func createDefaultConfig() config.P2PConfig {
@@ -38,8 +40,10 @@ func TestPeerDisconnectionWithOneAdvertiserWithShardingWithLists(t *testing.T) {
 		MaxIntraShardObservers:  1,
 		MaxCrossShardObservers:  1,
 		MaxSeeders:              1,
-		MaxFullHistoryObservers: 1,
 		Type:                    p2p.ListsSharder,
+		AdditionalConnections: config.AdditionalConnectionsConfig{
+			MaxFullHistoryObservers: 1,
+		},
 	}
 	p2pConfig.Node.ThresholdMinConnectedPeers = 3
 
@@ -59,9 +63,13 @@ func testPeerDisconnectionWithOneAdvertiser(t *testing.T, p2pConfig config.P2PCo
 		ListenAddress:        libp2p.ListenLocalhostAddrWithIp4AndTcp,
 		P2pConfig:            p2pConfigSeeder,
 		PreferredPeersHolder: &p2pmocks.PeersHolderStub{},
+		NodeOperationMode:    p2p.NormalOperation,
+		Marshalizer:          &testscommon.MarshalizerMock{},
+		SyncTimer:            &testscommon.SyncTimerStub{},
 	}
 	//Step 1. Create advertiser
-	advertiser, _ := libp2p.NewMockMessenger(argSeeder, netw)
+	advertiser, err := libp2p.NewMockMessenger(argSeeder, netw)
+	require.Nil(t, err)
 	p2pConfig.KadDhtPeerDiscovery.InitialPeerList = []string{integrationTests.GetConnectableAddress(advertiser)}
 
 	//Step 2. Create noOfPeers instances of messenger type and call bootstrap
@@ -71,8 +79,12 @@ func testPeerDisconnectionWithOneAdvertiser(t *testing.T, p2pConfig config.P2PCo
 			ListenAddress:        libp2p.ListenLocalhostAddrWithIp4AndTcp,
 			P2pConfig:            p2pConfig,
 			PreferredPeersHolder: &p2pmocks.PeersHolderStub{},
+			NodeOperationMode:    p2p.NormalOperation,
+			Marshalizer:          &testscommon.MarshalizerMock{},
+			SyncTimer:            &testscommon.SyncTimerStub{},
 		}
-		node, _ := libp2p.NewMockMessenger(arg, netw)
+		node, errCreate := libp2p.NewMockMessenger(arg, netw)
+		require.Nil(t, errCreate)
 		peers[i] = node
 	}
 

@@ -54,7 +54,6 @@
     #Example:
     #   /ip6/fe80::8823:6dff:fee7:f172/tcp/4001/p2p/QmYJyUMAcXEw1b5bFfbBbzYu5wyyjLMRHXGUkCXpag74Fu
     #   /ip4/162.246.145.218/udp/4001/utp/ipfs/QmYJyUMAcXEw1b5bFfbBbzYu5wyyjLMRHXGUkCXpag74Fu
-    #   /ether/ac:fd:ec:0b:7c:fe/ipfs/QmYJyUMAcXEw1b5bFfbBbzYu5wyyjLMRHXGUkCXpag74Fu
     #
     #If the initial peers list is left empty, the node will not try to connect to other peers during initial bootstrap
     #phase but will accept connections and will do the network discovery if another peer connects to it
@@ -73,11 +72,15 @@
     MaxCrossShardValidators = 8
     MaxIntraShardObservers = 2
     MaxCrossShardObservers = 1
-    MaxFullHistoryObservers = 10
     MaxSeeders = 2
+
     #available options:
     #  `ListsSharder` will split the peers based on the shard membership (intra, cross or unknown)
     #  `OneListSharder` will do just the connection triming (upto TargetPeerCount value) not taking into account
     #              the shard membership of the connected peers
     #  `NilListSharder` will disable conection trimming (sharder is off)
     Type = "ListsSharder"
+
+    [AdditionalConnections]
+        #this value will be added to the target peer count automatically when the node will be in full archive mode
+        MaxFullHistoryObservers = 10

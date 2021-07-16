@@ -34,6 +34,7 @@ func createMessenger() p2p.Messenger {
 		},
 		SyncTimer:            &libp2p.LocalSyncTimer{},
 		PreferredPeersHolder: &p2pmocks.PeersHolderStub{},
+		NodeOperationMode:    p2p.NormalOperation,
 	}
 
 	libP2PMes, err := libp2p.NewNetworkMessenger(args)
